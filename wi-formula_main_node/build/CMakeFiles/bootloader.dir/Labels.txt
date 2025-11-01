@@ -1,0 +1,13 @@
+# Target labels
+ bootloader
+# Source files and their labels
+/Users/bilalhodzic/wi-formula_main_node/build/CMakeFiles/bootloader
+/Users/bilalhodzic/wi-formula_main_node/build/CMakeFiles/bootloader.rule
+/Users/bilalhodzic/wi-formula_main_node/build/CMakeFiles/bootloader-complete.rule
+/Users/bilalhodzic/wi-formula_main_node/build/bootloader-prefix/src/bootloader-stamp/bootloader-build.rule
+/Users/bilalhodzic/wi-formula_main_node/build/bootloader-prefix/src/bootloader-stamp/bootloader-configure.rule
+/Users/bilalhodzic/wi-formula_main_node/build/bootloader-prefix/src/bootloader-stamp/bootloader-download.rule
+/Users/bilalhodzic/wi-formula_main_node/build/bootloader-prefix/src/bootloader-stamp/bootloader-install.rule
+/Users/bilalhodzic/wi-formula_main_node/build/bootloader-prefix/src/bootloader-stamp/bootloader-mkdir.rule
+/Users/bilalhodzic/wi-formula_main_node/build/bootloader-prefix/src/bootloader-stamp/bootloader-patch.rule
+/Users/bilalhodzic/wi-formula_main_node/build/bootloader-prefix/src/bootloader-stamp/bootloader-update.rule
