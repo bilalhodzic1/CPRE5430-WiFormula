@@ -42,7 +42,7 @@ static void wifi_event_handler(void *arg, esp_event_base_t base, int32_t id, voi
         break;
     case WIFI_EVENT_AP_START:
         printf("AP MODE: Successfully started. Initiallizing broker\n");
-        start_mqtt_broker();
+        xTaskCreate(start_mqtt_broker, "start_broker", 16384, NULL, 5, NULL);
         break;
     default:
         printf("event caught %s %ld\n", base, id);
