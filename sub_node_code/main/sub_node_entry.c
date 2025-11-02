@@ -11,6 +11,34 @@
 #include "nvs_flash.h"
 #include "lwip/inet.h"
 
+static TimerHandle_t connection_attempter = NULL;
+static volatile bool is_connected = false;
+
+static void attempt_connection_cb()
+{
+    if (!is_connected)
+    {
+        esp_wifi_connect();
+    }
+}
+
+static void start_connection_attempt_timer()
+{
+    if (!connection_attempter)
+    {
+        connection_attempter = xTimerCreate("attempter",
+                                            pdMS_TO_TICKS(10 * 1000),
+                                            pdTRUE, NULL, attempt_connection_cb);
+    }
+    xTimerStart(connection_attempter, 0);
+}
+
+static void stop_connection_attempt_timer()
+{
+    if (connection_attempter)
+        xTimerStop(connection_attempter, 0);
+}
+
 static void ip_event_handler(void *arg, esp_event_base_t base, int32_t id, void *data)
 {
     switch (id)
@@ -18,6 +46,8 @@ static void ip_event_handler(void *arg, esp_event_base_t base, int32_t id, void 
     case IP_EVENT_STA_GOT_IP:
         ip_event_got_ip_t *event = (ip_event_got_ip_t *)data;
         printf("Got IP: " IPSTR "\n", IP2STR(&event->ip_info.ip));
+        is_connected = true;
+        stop_connection_attempt_timer();
         break;
     default:
         break;
@@ -29,7 +59,11 @@ static void wifi_event_handler(void *arg, esp_event_base_t base, int32_t id, voi
     switch (id)
     {
     case WIFI_EVENT_STA_START:
-        esp_wifi_connect();
+        start_connection_attempt_timer();
+        break;
+    case WIFI_EVENT_STA_DISCONNECTED:
+        is_connected = false;
+        start_connection_attempt_timer();
         break;
     default:
         break;
