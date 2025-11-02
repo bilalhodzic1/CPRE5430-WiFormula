@@ -11,6 +11,18 @@
 #include "nvs_flash.h"
 #include "lwip/inet.h"
 #include "wifi_config_local.h"
+#include "mosq_broker.h"
+
+typedef struct mosq_broker_config mosq_broker_config_t;
+
+static void start_mqtt_broker()
+{
+    mosq_broker_config_t mqtt_config = {
+        .host = "0.0.0.0",
+        .port = 1883,
+        .tls_cfg = NULL};
+    mosq_broker_run(&mqtt_config);
+}
 
 static void wifi_event_handler(void *arg, esp_event_base_t base, int32_t id, void *data)
 {
@@ -27,6 +39,10 @@ static void wifi_event_handler(void *arg, esp_event_base_t base, int32_t id, voi
     case WIFI_EVENT_STA_START:
         printf("STATION MODE: Starting station connection\n");
         esp_wifi_connect();
+        break;
+    case WIFI_EVENT_AP_START:
+        printf("AP MODE: Successfully started. Initiallizing broker\n");
+        start_mqtt_broker();
         break;
     default:
         printf("event caught %s %ld\n", base, id);
