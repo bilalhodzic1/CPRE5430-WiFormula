@@ -18,14 +18,21 @@
 #include "lwip/inet.h"  
 
 
+static void ip_event_handler(void *arg, esp_event_base_t base, int32_t id, void *data){
+    switch(id){
+        case IP_EVENT_STA_GOT_IP:
+            ip_event_got_ip_t* event = (ip_event_got_ip_t*) data;
+            printf("Got IP: " IPSTR "\n", IP2STR(&event->ip_info.ip));
+            break;
+        default:
+            break;
+    }
+}
+
 static void wifi_event_handler(void *arg, esp_event_base_t base, int32_t id, void *data){
     switch(id){
         case WIFI_EVENT_STA_START:
             esp_wifi_connect();
-            break;
-        case IP_EVENT_STA_GOT_IP:
-            ip_event_got_ip_t* event = (ip_event_got_ip_t*) data;
-            printf("Got IP: " IPSTR "\n", IP2STR(&event->ip_info.ip));
             break;
         default:
             break;
@@ -58,7 +65,7 @@ void app_main(void)
                                                         NULL));
     ESP_ERROR_CHECK(esp_event_handler_instance_register(IP_EVENT,
                                                         IP_EVENT_STA_GOT_IP,
-                                                        &wifi_event_handler,
+                                                        &ip_event_handler,
                                                         NULL,
                                                         NULL));
     
