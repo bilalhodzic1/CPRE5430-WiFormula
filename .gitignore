@@ -1,1 +1,48 @@
-.vscode
+# ---- ESP-IDF build artifacts ----
+build/
+sdkconfig
+sdkconfig.old
+sdkconfig.defaults.old
+dependencies.lock
+
+# ---- Python virtual environments (if any) ----
+venv/
+.env/
+.python_env/
+
+# ---- VS Code settings ----
+.vscode/
+.idea/
+
+# ---- macOS system files ----
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# ---- ESP-IDF logs / temporary files ----
+*.log
+*.elf
+*.bin
+*.map
+*.pyc
+__pycache__/
+
+# ---- CMake / Ninja build cache ----
+CMakeFiles/
+CMakeCache.txt
+*.cmake
+*.ninja
+*.o
+*.obj
+
+# ---- Backup and temporary files ----
+*~
+*.bak
+*.swp
+*.swo
+*.tmp
+
+# ---- Generated project files ----
+project_description.json
+compile_commands.json
