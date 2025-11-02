@@ -10,6 +10,7 @@
 #include "esp_wifi.h"
 #include "nvs_flash.h"
 #include "lwip/inet.h"
+#include "wifi_config_local.h"
 
 static void wifi_event_handler(void *arg, esp_event_base_t base, int32_t id, void *data)
 {
@@ -86,8 +87,8 @@ void app_main(void)
     esp_netif_create_default_wifi_sta();
     wifi_config_t sta_config = {
         .sta = {
-            .ssid = "",
-            .password = ""}};
+            .ssid = WIFI_SSID,
+            .password = WIFI_PASS}};
 
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &sta_config));
 
