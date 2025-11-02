@@ -15,13 +15,17 @@
 
 typedef struct mosq_broker_config mosq_broker_config_t;
 
-static void start_mqtt_broker()
+static volatile bool is_broker_started = false;
+
+static void start_mqtt_broker(void *args)
 {
     mosq_broker_config_t mqtt_config = {
         .host = "0.0.0.0",
         .port = 1883,
         .tls_cfg = NULL};
     mosq_broker_run(&mqtt_config);
+    is_broker_started = true;
+    vTaskDelete(NULL);
 }
 
 static void wifi_event_handler(void *arg, esp_event_base_t base, int32_t id, void *data)
@@ -42,7 +46,10 @@ static void wifi_event_handler(void *arg, esp_event_base_t base, int32_t id, voi
         break;
     case WIFI_EVENT_AP_START:
         printf("AP MODE: Successfully started. Initiallizing broker\n");
-        xTaskCreate(start_mqtt_broker, "start_broker", 16384, NULL, 5, NULL);
+        if (!is_broker_started)
+        {
+            xTaskCreate(start_mqtt_broker, "start_broker", 16384, NULL, 5, NULL);
+        }
         break;
     default:
         printf("event caught %s %ld\n", base, id);
