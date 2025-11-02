@@ -17,11 +17,15 @@ static void wifi_event_handler(void *arg, esp_event_base_t base, int32_t id, voi
     {
     case WIFI_EVENT_AP_STACONNECTED:
         wifi_event_ap_staconnected_t *connect_event = (wifi_event_ap_staconnected_t *)data;
-        printf("Station " MACSTR " connected\n", MAC2STR(connect_event->mac));
+        printf("AP MODE: Station " MACSTR " connected\n", MAC2STR(connect_event->mac));
         break;
     case WIFI_EVENT_AP_STADISCONNECTED:
         wifi_event_ap_stadisconnected_t *disconnect_event = (wifi_event_ap_stadisconnected_t *)data;
-        printf("Station " MACSTR " disconnected\n", MAC2STR(disconnect_event->mac));
+        printf("AP MODE: Station " MACSTR " disconnected\n", MAC2STR(disconnect_event->mac));
+        break;
+    case WIFI_EVENT_STA_START:
+        printf("STATION MODE: Starting station connection\n");
+        esp_wifi_connect();
         break;
     default:
         printf("event caught %s %ld\n", base, id);
@@ -35,8 +39,12 @@ static void ip_event_handler(void *arg, esp_event_base_t base, int32_t id, void 
     {
     case IP_EVENT_AP_STAIPASSIGNED:
         ip_event_ap_staipassigned_t *ap_ip_assignment_event = (ip_event_ap_staipassigned_t *)data;
-        printf("Station " MACSTR " assigned to ip address " IPSTR, MAC2STR(ap_ip_assignment_event->mac),
+        printf("AP MODE: Station " MACSTR " assigned to ip address " IPSTR "\n", MAC2STR(ap_ip_assignment_event->mac),
                IP2STR(&ap_ip_assignment_event->ip));
+        break;
+    case IP_EVENT_STA_GOT_IP:
+        ip_event_got_ip_t *event = (ip_event_got_ip_t *)data;
+        printf("STATION MODE: Got IP: " IPSTR "\n", IP2STR(&event->ip_info.ip));
         break;
     default:
         break;
@@ -59,11 +67,11 @@ void app_main(void)
     ESP_ERROR_CHECK(esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL, NULL));
     ESP_ERROR_CHECK(esp_event_handler_instance_register(IP_EVENT, ESP_EVENT_ANY_ID, &ip_event_handler, NULL, NULL));
 
-    esp_netif_create_default_wifi_ap();
-
     wifi_init_config_t init_config = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&init_config));
+    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_APSTA));
 
+    esp_netif_create_default_wifi_ap();
     wifi_config_t ap_config = {
         .ap = {
             .ssid = "wi-formula-test",
@@ -73,8 +81,15 @@ void app_main(void)
             .max_connection = 4,
             .authmode = WIFI_AUTH_WPA2_PSK},
     };
-
-    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &ap_config));
+
+    esp_netif_create_default_wifi_sta();
+    wifi_config_t sta_config = {
+        .sta = {
+            .ssid = "",
+            .password = ""}};
+
+    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &sta_config));
+
     ESP_ERROR_CHECK(esp_wifi_start());
 }
