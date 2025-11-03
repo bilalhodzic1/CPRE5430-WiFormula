@@ -27,7 +27,6 @@ static void mqtt_random_publish()
     {
         char buf[16];
         snprintf(buf, sizeof(buf), "%ld", esp_random() % 100);
-        printf("Publish attempt here\n");
         esp_mqtt_client_publish(client, "home/random", buf, 0, 1, 0);
         vTaskDelay(pdMS_TO_TICKS(10000));
     }
@@ -53,7 +52,8 @@ static void mqtt_event_handler(void *arg, esp_event_base_t base, int32_t id, voi
         xTaskCreate(mqtt_random_publish, "mqtt_pub", 4096, NULL, 4, NULL);
         break;
     case MQTT_EVENT_PUBLISHED:
-        printf("Successfully published\n");
+        esp_mqtt_event_handle_t event = data;
+        printf("Successfully published. Message id = %d\n", event->msg_id);
         break;
     default:
         break;

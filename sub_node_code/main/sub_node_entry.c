@@ -10,6 +10,7 @@
 #include "esp_wifi.h"
 #include "nvs_flash.h"
 #include "lwip/inet.h"
+#include "mqtt_client.h"
 
 static TimerHandle_t connection_attempter = NULL;
 static volatile bool is_connected = false;
@@ -40,6 +41,33 @@ static void stop_connection_attempt_timer()
         xTimerStop(connection_attempter, 0);
 }
 
+static void mqtt_event_handler(void *arg, esp_event_base_t base, int32_t id, void *data)
+{
+    switch (id)
+    {
+    case MQTT_EVENT_CONNECTED:
+        printf("Connected to MQTT successfully\n");
+        break;
+    default:
+        break;
+    }
+}
+
+static void start_local_client(esp_ip4_addr_t *gw)
+{
+    static char host[16];
+    snprintf(host, sizeof(host), IPSTR, IP2STR(gw));
+
+    esp_mqtt_client_config_t mqtt_cfg = {
+        .broker.address.hostname = host,
+        .broker.address.transport = MQTT_TRANSPORT_OVER_TCP,
+        .broker.address.port = 1883,
+    };
+    esp_mqtt_client_handle_t client = esp_mqtt_client_init(&mqtt_cfg);
+    esp_mqtt_client_register_event(client, ESP_EVENT_ANY_ID, mqtt_event_handler, NULL);
+    esp_mqtt_client_start(client);
+}
+
 static void ip_event_handler(void *arg, esp_event_base_t base, int32_t id, void *data)
 {
     switch (id)
@@ -50,6 +78,7 @@ static void ip_event_handler(void *arg, esp_event_base_t base, int32_t id, void 
         printf("AP IP address is " IPSTR " \n", IP2STR(&event->ip_info.gw));
         is_connected = true;
         stop_connection_attempt_timer();
+        start_local_client(&event->ip_info.gw);
         break;
     default:
         break;
