@@ -12,6 +12,9 @@
 #include "lwip/inet.h"
 #include "wifi_config_local.h"
 #include "mosq_broker.h"
+#include "mqtt_client.h"
+static TimerHandle_t connection_attempter = NULL;
+static volatile bool is_connected = false;
 
 typedef struct mosq_broker_config mosq_broker_config_t;
 
@@ -19,13 +22,37 @@ static volatile bool is_broker_started = false;
 
 static void start_mqtt_broker(void *args)
 {
+    is_broker_started = true;
     mosq_broker_config_t mqtt_config = {
         .host = "0.0.0.0",
         .port = 1883,
         .tls_cfg = NULL};
     mosq_broker_run(&mqtt_config);
-    is_broker_started = true;
     vTaskDelete(NULL);
+}
+
+static void mqtt_event_handler(void *arg, esp_event_base_t base, int32_t id, void *data)
+{
+    switch (id)
+    {
+    case MQTT_EVENT_CONNECTED:
+        printf("Connected to MQTT successfully\n");
+        break;
+    default:
+        break;
+    }
+}
+
+static void start_local_client()
+{
+    esp_mqtt_client_config_t mqtt_cfg = {
+        .broker.address.hostname = "127.0.0.1",
+        .broker.address.transport = MQTT_TRANSPORT_OVER_TCP,
+        .broker.address.port = 1883,
+    };
+    esp_mqtt_client_handle_t client = esp_mqtt_client_init(&mqtt_cfg);
+    esp_mqtt_client_register_event(client, ESP_EVENT_ANY_ID, mqtt_event_handler, NULL);
+    esp_mqtt_client_start(client);
 }
 
 static void wifi_event_handler(void *arg, esp_event_base_t base, int32_t id, void *data)
@@ -50,6 +77,7 @@ static void wifi_event_handler(void *arg, esp_event_base_t base, int32_t id, voi
         {
             xTaskCreate(start_mqtt_broker, "start_broker", 16384, NULL, 5, NULL);
         }
+        start_local_client();
         break;
     default:
         printf("event caught %s %ld\n", base, id);
