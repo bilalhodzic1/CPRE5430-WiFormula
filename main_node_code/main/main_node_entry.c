@@ -13,12 +13,25 @@
 #include "wifi_config_local.h"
 #include "mosq_broker.h"
 #include "mqtt_client.h"
-static TimerHandle_t connection_attempter = NULL;
 static volatile bool is_connected = false;
 
 typedef struct mosq_broker_config mosq_broker_config_t;
 
 static volatile bool is_broker_started = false;
+
+static esp_mqtt_client_handle_t client = NULL;
+
+static void mqtt_random_publish()
+{
+    while (1)
+    {
+        char buf[16];
+        snprintf(buf, sizeof(buf), "%ld", esp_random() % 100);
+        printf("Publish attempt here\n");
+        esp_mqtt_client_publish(client, "home/random", buf, 0, 1, 0);
+        vTaskDelay(pdMS_TO_TICKS(10000));
+    }
+}
 
 static void start_mqtt_broker(void *args)
 {
@@ -37,6 +50,10 @@ static void mqtt_event_handler(void *arg, esp_event_base_t base, int32_t id, voi
     {
     case MQTT_EVENT_CONNECTED:
         printf("Connected to MQTT successfully\n");
+        xTaskCreate(mqtt_random_publish, "mqtt_pub", 4096, NULL, 4, NULL);
+        break;
+    case MQTT_EVENT_PUBLISHED:
+        printf("Successfully published\n");
         break;
     default:
         break;
@@ -50,7 +67,7 @@ static void start_local_client()
         .broker.address.transport = MQTT_TRANSPORT_OVER_TCP,
         .broker.address.port = 1883,
     };
-    esp_mqtt_client_handle_t client = esp_mqtt_client_init(&mqtt_cfg);
+    client = esp_mqtt_client_init(&mqtt_cfg);
     esp_mqtt_client_register_event(client, ESP_EVENT_ANY_ID, mqtt_event_handler, NULL);
     esp_mqtt_client_start(client);
 }
