@@ -43,10 +43,20 @@ static void stop_connection_attempt_timer()
 
 static void mqtt_event_handler(void *arg, esp_event_base_t base, int32_t id, void *data)
 {
+    esp_mqtt_event_handle_t event = data;
+    esp_mqtt_client_handle_t client = event->client;
     switch (id)
     {
     case MQTT_EVENT_CONNECTED:
         printf("Connected to MQTT successfully\n");
+        esp_mqtt_client_subscribe(client, "home/random", 0);
+        break;
+    case MQTT_EVENT_SUBSCRIBED:
+        printf("Successfully subscribed\n");
+        break;
+    case MQTT_EVENT_DATA:
+        printf("TOPIC=%.*s\n", event->topic_len, event->topic);
+        printf("DATA=%.*s\n", event->data_len, event->data);
         break;
     default:
         break;
