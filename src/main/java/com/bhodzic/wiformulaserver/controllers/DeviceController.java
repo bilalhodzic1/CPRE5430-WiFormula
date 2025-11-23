@@ -44,6 +44,7 @@ public class DeviceController {
             RegistrationRequest newRequest = new RegistrationRequest();
             newRequest.device = parentDevice.get();
             newRequest.deviceToApprove = newRegisteredDevice;
+            newRegisteredDevice.parent = parentDevice.get();
             deviceRepo.save(newRegisteredDevice);
             requestRepo.save(newRequest);
         }else {
@@ -55,7 +56,18 @@ public class DeviceController {
     public ResponseEntity<Iterable<RegisteredDevice>> getAllDevices(){
         return new ResponseEntity<>(deviceRepo.findAll(), HttpStatus.OK);
     }
-    @GetMapping("/{user_id}")
+    @GetMapping("/unapproved")
+    public ResponseEntity<Iterable<RegisteredDevice>> getUnapprovedDevices(){
+        Iterable<RegisteredDevice> devices = deviceRepo.findAll();
+        List<RegisteredDevice> unapprovedDevices = new ArrayList<>();
+        for(RegisteredDevice device : devices){
+            if(device.user == null && device.device_type == 'C'){
+                unapprovedDevices.add(device);
+            }
+        }
+        return new ResponseEntity<>(unapprovedDevices, HttpStatus.OK);
+    }
+    @GetMapping("/user-devices/{user_id}")
     public ResponseEntity<List<RegisteredDevice>> getRegisteredDevices(@PathVariable String user_id){
         Optional<WiFormulaUser> user = userRepo.findById(user_id);
         return user.map(wiFormulaUser -> new ResponseEntity<>(wiFormulaUser.registeredDevices, HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(HttpStatus.BAD_REQUEST));
@@ -107,5 +119,10 @@ public class DeviceController {
             requestedDevices.forEach(requests::add);
         }
         return new ResponseEntity<>(requests, HttpStatus.OK);
+    }
+    @GetMapping("/{mac_address}")
+    public ResponseEntity<RegisteredDevice> getDevice(@PathVariable String mac_address){
+        Optional<RegisteredDevice> device = deviceRepo.findById(mac_address);
+        return device.map(registeredDevice -> new ResponseEntity<>(registeredDevice, HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(HttpStatus.BAD_REQUEST));
     }
 }

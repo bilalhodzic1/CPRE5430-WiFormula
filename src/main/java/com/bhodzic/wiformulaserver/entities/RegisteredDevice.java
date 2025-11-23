@@ -1,10 +1,10 @@
 package com.bhodzic.wiformulaserver.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.persistence.*;
+
+import java.util.List;
 
 @Entity
 @Table(name = "registered_device")
@@ -16,4 +16,14 @@ public class RegisteredDevice {
     @ManyToOne
     @JsonBackReference
     public WiFormulaUser user;
+
+    @ManyToOne
+    @JoinColumn(name = "parent_mac_address") // FK column
+    @JsonBackReference(value = "device-parent")
+    public RegisteredDevice parent;
+
+    @OneToMany(mappedBy = "parent")
+    @JsonManagedReference(value = "device-parent")
+    public List<RegisteredDevice> children;
+
 }
