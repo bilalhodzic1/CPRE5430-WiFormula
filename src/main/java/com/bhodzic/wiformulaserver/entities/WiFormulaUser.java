@@ -1,0 +1,19 @@
+package com.bhodzic.wiformulaserver.entities;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.persistence.*;
+
+import java.util.List;
+
+@Entity
+public class WiFormulaUser {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    public long user_id;
+    public String username;
+    public String password;
+
+    @OneToMany(mappedBy = "user")
+    @JsonManagedReference
+    public List<RegisteredDevices> registeredDevices;
+}
