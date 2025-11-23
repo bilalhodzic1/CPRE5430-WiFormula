@@ -4,12 +4,14 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @Entity
+@Table(name = "wi_formula_user")
 public class WiFormulaUser {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    public long user_id;
+    public String user_id;
     public String username;
     public String password;
 
