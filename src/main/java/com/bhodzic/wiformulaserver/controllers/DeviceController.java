@@ -6,6 +6,7 @@ import com.bhodzic.wiformulaserver.entities.WiFormulaUser;
 import com.bhodzic.wiformulaserver.repositories.RegisteredDevicesRepo;
 import com.bhodzic.wiformulaserver.repositories.RegistrationRequestRepo;
 import com.bhodzic.wiformulaserver.repositories.WiFormulaUserRepo;
+import com.bhodzic.wiformulaserver.request_objects.ControllerApprovalRequest;
 import com.bhodzic.wiformulaserver.request_objects.DeviceApprovalRequest;
 import com.bhodzic.wiformulaserver.request_objects.RegistrationRequestObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,7 +27,7 @@ public class DeviceController {
     @Autowired private RegistrationRequestRepo requestRepo;
 
     @PostMapping("/register")
-    public ResponseEntity<RegisteredDevice> registerDevice(RegistrationRequestObject newDevice){
+    public ResponseEntity<RegisteredDevice> registerDevice(@RequestBody RegistrationRequestObject newDevice){
         Optional<RegisteredDevice> device = deviceRepo.findById(newDevice.mac_address);
         if(device.isPresent()){
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -42,9 +44,11 @@ public class DeviceController {
             RegistrationRequest newRequest = new RegistrationRequest();
             newRequest.device = parentDevice.get();
             newRequest.deviceToApprove = newRegisteredDevice;
+            deviceRepo.save(newRegisteredDevice);
             requestRepo.save(newRequest);
+        }else {
+            deviceRepo.save(newRegisteredDevice);
         }
-        deviceRepo.save(newRegisteredDevice);
         return new ResponseEntity<>(newRegisteredDevice, HttpStatus.CREATED);
     }
     @GetMapping("/")
@@ -75,5 +79,33 @@ public class DeviceController {
         deviceRepo.save(deviceToApprove.get());
         requestRepo.deleteById(requestToApprove.get().request_id);
         return new ResponseEntity<>(deviceToApprove.get(), HttpStatus.OK);
+    }
+    @PostMapping("/approve-controller")
+    public ResponseEntity<RegisteredDevice> approveControllerDevice(@RequestBody ControllerApprovalRequest request){
+        Optional<RegisteredDevice> device = deviceRepo.findById(request.mac_address);
+        if(device.isEmpty()){
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        Optional<WiFormulaUser> user = userRepo.findById(request.user_id);
+        if(user.isEmpty()){
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        device.get().user = user.get();
+        deviceRepo.save(device.get());
+        return new ResponseEntity<>(device.get(), HttpStatus.OK);
+    }
+    @GetMapping("/requests/{user_id}")
+    public ResponseEntity<List<RegistrationRequest>> getRegistrationRequests(@PathVariable String user_id){
+        Optional<WiFormulaUser> user = userRepo.findById(user_id);
+        if(user.isEmpty()){
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        WiFormulaUser wiUser = user.get();
+        List<RegistrationRequest> requests = new ArrayList<>();
+        for(RegisteredDevice device : wiUser.registeredDevices){
+            Iterable<RegistrationRequest> requestedDevices = requestRepo.findRegistrationRequestByDevice(device);
+            requestedDevices.forEach(requests::add);
+        }
+        return new ResponseEntity<>(requests, HttpStatus.OK);
     }
 }

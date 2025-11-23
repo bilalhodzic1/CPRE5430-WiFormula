@@ -18,11 +18,14 @@ public class UserController {
     public WiFormulaUserRepo userRepo;
 
     @PostMapping("/register")
-    public ResponseEntity<WiFormulaUser> registerUser(@RequestBody WiFormulaUser newUser) {
-        Optional<WiFormulaUser> existingUser = userRepo.findByUsername(newUser.username);
+    public ResponseEntity<WiFormulaUser> registerUser(@RequestBody LoginRequest newUserRequest) {
+        Optional<WiFormulaUser> existingUser = userRepo.findByUsername(newUserRequest.username);
         if(existingUser.isPresent()){
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+        WiFormulaUser newUser = new WiFormulaUser();
+        newUser.username = newUserRequest.username;
+        newUser.password = newUserRequest.password;
         userRepo.save(newUser);
         return new ResponseEntity<>(newUser, HttpStatus.CREATED);
     }
