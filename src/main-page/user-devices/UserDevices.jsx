@@ -5,7 +5,7 @@ export default function UserDevices({userRegisteredDevices, userLoading}) {
             <span className="text-gray-600 text-sm">Loading...</span>
         </div> :
         userRegisteredDevices.map((device) => (
-            <div className="p-3 mb-2 bg-gray-100 rounded-md">
+            <div key={device['mac_address']} className="p-3 mb-2 bg-gray-100 rounded-md">
                 {device['mac_address']}
             </div>
         ));

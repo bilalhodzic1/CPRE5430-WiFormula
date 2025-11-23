@@ -1,6 +1,7 @@
 import AllUnregistered from "../all-unregisterd/AllUnregistered.jsx";
 import UserDevices from "../user-devices/UserDevices.jsx";
 import {useEffect, useState} from "react";
+import RegistrationRequests from "../registration-requests/RegistrationRequests.jsx";
 
 export default function MainLayout({userId}) {
     const [userRegisteredDevices, setUserRegisteredDevices] = useState([])
@@ -17,6 +18,7 @@ export default function MainLayout({userId}) {
         <>
             <AllUnregistered userId={userId} setUserRegisteredDevices={setUserRegisteredDevices} userRegisteredDevices={userRegisteredDevices}/>
             <UserDevices userLoading={userLoading} userRegisteredDevices={userRegisteredDevices}/>
+            <RegistrationRequests userId={userId} setUserRegisteredDevices={setUserRegisteredDevices} userRegisteredDevices={userRegisteredDevices}/>
         </>
     )
 }
