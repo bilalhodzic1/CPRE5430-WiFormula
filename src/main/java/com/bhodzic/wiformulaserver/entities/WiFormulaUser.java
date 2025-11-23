@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @Entity
 @Table(name = "wi_formula_user")
@@ -19,5 +18,5 @@ public class WiFormulaUser {
 
     @OneToMany(mappedBy = "user")
     @JsonManagedReference
-    public List<RegisteredDevices> registeredDevices;
+    public List<RegisteredDevice> registeredDevices;
 }
