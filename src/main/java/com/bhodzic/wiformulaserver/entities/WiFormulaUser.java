@@ -11,7 +11,7 @@ import java.util.List;
 public class WiFormulaUser {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    public String user_id;
+    private String user_id;
     public String username;
     @JsonIgnore
     public String password;
