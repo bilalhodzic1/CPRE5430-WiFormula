@@ -40,6 +40,8 @@ public class DeviceController {
             Optional<RegisteredDevice> parentDevice = deviceRepo.findById(newDevice.controller_mac_address);
             if(parentDevice.isEmpty()){
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }else if(parentDevice.get().user == null){
+                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
             }
             RegistrationRequest newRequest = new RegistrationRequest();
             newRequest.device = parentDevice.get();
@@ -120,9 +122,18 @@ public class DeviceController {
         }
         return new ResponseEntity<>(requests, HttpStatus.OK);
     }
-    @GetMapping("/{mac_address}")
+    @GetMapping("/auth/{mac_address}")
     public ResponseEntity<RegisteredDevice> getDevice(@PathVariable String mac_address){
         Optional<RegisteredDevice> device = deviceRepo.findById(mac_address);
-        return device.map(registeredDevice -> new ResponseEntity<>(registeredDevice, HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+        if(device.isEmpty()){
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }else {
+            RegisteredDevice registeredDevice = device.get();
+            if(registeredDevice.user == null){
+                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            }else{
+                return new ResponseEntity<>(registeredDevice, HttpStatus.OK);
+            }
+        }
     }
 }
