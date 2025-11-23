@@ -1,18 +1,18 @@
 import './App.css'
 import {useState} from "react";
 import LoginSignup from "./login-component/LoginSignup.jsx";
+import MainLayout from "./main-page/main-layout/MainLayout.jsx";
 
 function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(false)
+    const [userId, setUserId] = useState("")
     if (!isLoggedIn) {
         return (
-            <LoginSignup setIsLoggedIn={setIsLoggedIn}/>
+            <LoginSignup setIsLoggedIn={setIsLoggedIn} setUserId={setUserId}/>
         )
     } else {
         return (
-            <>
-                <p className={"text-amber-800"}>Test</p>
-            </>
+            <MainLayout userId={userId}/>
         )
     }
 }

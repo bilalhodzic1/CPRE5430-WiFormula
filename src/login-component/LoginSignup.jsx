@@ -1,7 +1,7 @@
 import {useState} from "react";
 
 
-export default function LoginSignup({setIsLoggedIn}) {
+export default function LoginSignup({setIsLoggedIn, setUserId}) {
     const [userName, setUserName] = useState("");
     const [validUsername, setValidUsername] = useState(true);
     const [password, setPassword] = useState("");
