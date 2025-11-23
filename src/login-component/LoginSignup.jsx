@@ -9,42 +9,42 @@ export default function LoginSignup({setIsLoggedIn, setUserId}) {
     const [formSubmitting, setFormSubmitting] = useState(false);
     const [inValidLogin, setInvalidLogin] = useState(false);
 
-    function handleLogin() {
+    async function handleLogin() {
         setFormSubmitting(true);
         const loginRequest = {
             "username": userName,
             "password": password
         };
-        const response = fetch('http://localhost:8080/api/user/login', {
+        const response = await fetch('http://localhost:8080/api/user/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(loginRequest)
         });
-        response.then((res) => {
-            setFormSubmitting(false)
-            if (res.status === 401) {
-                setInvalidLogin(true)
-            }
-            {
-                setIsLoggedIn(true)
-            }
-        });
+        setFormSubmitting(false)
+        if (response.status === 401) {
+            setInvalidLogin(true)
+        }
+        {
+            const data = await response.json();
+            setUserId(data['user_id'])
+            setIsLoggedIn(true)
+        }
     }
 
-    function handleSignUp() {
+    async function handleSignUp() {
         console.log("Sign up clicked")
         if (userName === "") {
             setValidUsername(false)
             return
-        }else{
+        } else {
             setValidUsername(true)
         }
         if (password === "") {
             setValidPassword(false)
             return
-        }else{
+        } else {
             setValidPassword(true)
         }
         setFormSubmitting(true);
@@ -52,19 +52,19 @@ export default function LoginSignup({setIsLoggedIn, setUserId}) {
             "username": userName,
             "password": password
         };
-        const response = fetch('http://localhost:8080/api/user/register', {
+        const response = await fetch('http://localhost:8080/api/user/register', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(signUpRequest)
         });
-        response.then((res) => {
-            setFormSubmitting(false);
-            if (res.status === 201) {
-                setIsLoggedIn(true)
-            }
-        });
+        setFormSubmitting(false);
+        if (response.status === 201) {
+            const data = await response.json();
+            setUserId(data['user_id'])
+            setIsLoggedIn(true)
+        }
     }
 
     return (<div className="min-h-screen flex items-center justify-center bg-gray-100">
