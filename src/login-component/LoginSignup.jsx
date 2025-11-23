@@ -1,4 +1,5 @@
 import {useState} from "react";
+import CONFIG from "../config.js";
 
 
 export default function LoginSignup({setIsLoggedIn, setUserId}) {
@@ -15,7 +16,7 @@ export default function LoginSignup({setIsLoggedIn, setUserId}) {
             "username": userName,
             "password": password
         };
-        const response = await fetch('http://localhost:8080/api/user/login', {
+        const response = await fetch(`${CONFIG.API_URL}/api/user/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -52,7 +53,7 @@ export default function LoginSignup({setIsLoggedIn, setUserId}) {
             "username": userName,
             "password": password
         };
-        const response = await fetch('http://localhost:8080/api/user/register', {
+        const response = await fetch(`${CONFIG.API_URL}/api/user/register`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

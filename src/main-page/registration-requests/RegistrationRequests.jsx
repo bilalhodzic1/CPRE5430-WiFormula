@@ -1,11 +1,12 @@
 import {useEffect, useState} from "react";
+import CONFIG from "../../config.js";
 
 export default function RegistrationRequests({userId, setUserRegisteredDevices, userRegisteredDevices}) {
     const [allUserRequests, setAllUserRequests] = useState([]);
     const [allRequestsLoading, setAllRequestsLoading] = useState(true);
     useEffect(() => {
         const fetchAllRequests = async () => {
-            const response = await fetch(`http://localhost:8080/api/device/requests/${userId}`);
+            const response = await fetch(`${CONFIG.API_URL}/api/device/requests/${userId}`);
             const data = await response.json();
             console.log(data)
             setAllUserRequests(data);
@@ -20,7 +21,7 @@ export default function RegistrationRequests({userId, setUserRegisteredDevices, 
         }
         const approveDeviceRequest =
             await fetch(
-                'http://localhost:8080/api/device/approve', {
+                `${CONFIG.API_URL}/api/device/approve`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

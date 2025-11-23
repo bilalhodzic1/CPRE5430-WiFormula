@@ -1,11 +1,12 @@
 import {useEffect, useState} from "react";
+import CONFIG from "../../config.js";
 
 export default function AllUnregistered({userId, setUserRegisteredDevices, userRegisteredDevices}) {
     const [allUnregisteredDevices, setAllUnregisteredDevices] = useState([]);
     const [unregisteredLoading, setUnregisteredLoading] = useState(true);
     useEffect(() => {
         const fetchAllUnregistered = async () => {
-            const response = await fetch('http://localhost:8080/api/device/unapproved');
+            const response = await fetch(`${CONFIG.API_URL}/api/device/unapproved`);
             const data = await response.json();
             setAllUnregisteredDevices(data);
         }
@@ -19,7 +20,7 @@ export default function AllUnregistered({userId, setUserRegisteredDevices, userR
         }
         const approveDeviceRequest =
             await fetch(
-                'http://localhost:8080/api/device/approve-controller', {
+                `${CONFIG.API_URL}/api/device/approve-controller`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
