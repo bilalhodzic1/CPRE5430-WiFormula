@@ -2,6 +2,7 @@ package com.bhodzic.wiformulaserver.controllers;
 
 import com.bhodzic.wiformulaserver.entities.WiFormulaUser;
 import com.bhodzic.wiformulaserver.repositories.WiFormulaUserRepo;
+import com.bhodzic.wiformulaserver.request_objects.LoginRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,5 +27,14 @@ public class UserController {
         }
         userRepo.save(newUser);
         return new ResponseEntity<>(newUser, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<WiFormulaUser> loginUser(@RequestBody LoginRequest user) {
+        Optional<WiFormulaUser> existingUser = userRepo.findByUsername(user.username);
+        if(existingUser.isPresent() && existingUser.get().password.equals(user.password)){
+            return new ResponseEntity<>(existingUser.get(), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 }
