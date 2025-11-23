@@ -29,6 +29,7 @@ export default function AllUnregistered({userId, setUserRegisteredDevices, userR
             );
         const approvedDevice = await approveDeviceRequest.json();
         setUserRegisteredDevices([...userRegisteredDevices, approvedDevice]);
+        setAllUnregisteredDevices(allUnregisteredDevices.filter(device => device['mac_address'] !== approvedDevice['mac_address']));
     }
 
 
