@@ -13,13 +13,90 @@
 #include "wifi_config_local.h"
 #include "mosq_broker.h"
 #include "mqtt_client.h"
+#include "esp_http_client.h"
 static volatile bool is_connected = false;
-
+int http_request_number = 0;
 typedef struct mosq_broker_config mosq_broker_config_t;
 
 static volatile bool is_broker_started = false;
-
+static TaskHandle_t http_task_handle = NULL;
 static esp_mqtt_client_handle_t client = NULL;
+
+esp_err_t _http_event_handler(esp_http_client_event_t *evt)
+{
+    static char *output_buffer; // Buffer to store response of http request from event handler
+    static int output_len;      // Stores number of bytes read
+    switch (evt->event_id)
+    {
+    case HTTP_EVENT_ON_DATA:
+        if (output_len == 0 && evt->user_data)
+        {
+            memset(evt->user_data, 0, 4096);
+        }
+        break;
+    default:
+        break;
+    }
+    return ESP_OK;
+}
+
+void send_register_request()
+{
+    uint8_t mac[6];
+    esp_wifi_get_mac(WIFI_IF_STA, mac);
+
+    char mac_str[18];
+    sprintf(mac_str, "%02X:%02X:%02X:%02X:%02X:%02X",
+            mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+
+    char post_data[128];
+    sprintf(post_data,
+            "{\"mac_address\":\"%s\",\"device_type\":\"C\"}",
+            mac_str);
+
+    char local_response_buffer[4096 + 1] = {0};
+    esp_http_client_config_t config = {
+        .host = "207.211.177.254",
+        .port = 8080,
+        .path = "/api/device/register",
+        .method = HTTP_METHOD_POST,
+        .event_handler = _http_event_handler,
+        .user_data = local_response_buffer, // Pass address of local buffer to get response
+        .disable_auto_redirect = true,
+    };
+    esp_http_client_handle_t client = esp_http_client_init(&config);
+    esp_http_client_set_post_field(client, post_data, strlen(post_data));
+    esp_http_client_set_header(client, "Content-Type", "application/json");
+    esp_err_t err = esp_http_client_perform(client);
+    if (err == ESP_OK)
+    {
+        printf("Test success\n");
+    }
+    else
+    {
+        printf("Test failed\n");
+    }
+    esp_http_client_cleanup(client);
+}
+
+void http_task(void *pv)
+{
+    for (;;)
+    {
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+        switch (http_request_number)
+        {
+        case 1:
+            send_register_request();
+            break;
+
+        default:
+            printf("Unknown request number: %d\n", http_request_number);
+            break;
+        }
+    }
+}
 
 static void mqtt_random_publish()
 {
@@ -114,6 +191,8 @@ static void ip_event_handler(void *arg, esp_event_base_t base, int32_t id, void 
     case IP_EVENT_STA_GOT_IP:
         ip_event_got_ip_t *event = (ip_event_got_ip_t *)data;
         printf("STATION MODE: Got IP: " IPSTR "\n", IP2STR(&event->ip_info.ip));
+        http_request_number = 1;
+        xTaskNotifyGive(http_task_handle);
         break;
     default:
         break;
@@ -161,4 +240,11 @@ void app_main(void)
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &sta_config));
 
     ESP_ERROR_CHECK(esp_wifi_start());
+    xTaskCreate(
+        http_task,
+        "http_task",
+        8192,
+        NULL,
+        5,
+        &http_task_handle);
 }
