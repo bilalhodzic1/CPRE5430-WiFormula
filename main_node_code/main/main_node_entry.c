@@ -14,6 +14,7 @@
 #include "mosq_broker.h"
 #include "mqtt_client.h"
 #include "esp_http_client.h"
+#include "cJSON.h"
 static volatile bool is_connected = false;
 int http_request_number = 0;
 typedef struct mosq_broker_config mosq_broker_config_t;
@@ -70,7 +71,15 @@ void send_register_request()
     esp_err_t err = esp_http_client_perform(client);
     if (err == ESP_OK)
     {
-        printf("Test success\n");
+        int response_code = esp_http_client_get_status_code(client);
+        if (response_code == 400)
+        {
+            printf("Already Registered\n");
+        }
+        else if (response_code == 201)
+        {
+            printf("Successfully registered\n");
+        }
     }
     else
     {
