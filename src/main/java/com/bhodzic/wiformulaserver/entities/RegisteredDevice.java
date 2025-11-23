@@ -10,9 +10,9 @@ import jakarta.persistence.Table;
 @Table(name = "registered_device")
 public class RegisteredDevice {
     @Id
-    private String mac_address;
-    private String device_name;
-    private char device_type;
+    public String mac_address;
+    public String device_name;
+    public char device_type;
     @ManyToOne
     @JsonBackReference
     public WiFormulaUser user;
