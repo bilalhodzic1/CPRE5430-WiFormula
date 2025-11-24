@@ -22,11 +22,13 @@ typedef struct mosq_broker_config mosq_broker_config_t;
 static volatile bool is_broker_started = false;
 static TaskHandle_t http_task_handle = NULL;
 static esp_mqtt_client_handle_t client = NULL;
+uint8_t pending_mac_bytes[6];
+bool mac_pending = false;
 
 esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 {
-    static char *output_buffer; // Buffer to store response of http request from event handler
-    static int output_len;      // Stores number of bytes read
+    static char *output_buffer;
+    static int output_len;
     switch (evt->event_id)
     {
     case HTTP_EVENT_ON_DATA:
@@ -44,7 +46,7 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 void send_register_request()
 {
     uint8_t mac[6];
-    esp_wifi_get_mac(WIFI_IF_STA, mac);
+    esp_wifi_get_mac(WIFI_IF_AP, mac);
 
     char mac_str[18];
     sprintf(mac_str, "%02X:%02X:%02X:%02X:%02X:%02X",
@@ -88,6 +90,95 @@ void send_register_request()
     esp_http_client_cleanup(client);
 }
 
+void create_device_request(const char *mac_address)
+{
+    uint8_t mac[6];
+    esp_wifi_get_mac(WIFI_IF_AP, mac);
+
+    char mac_str[18];
+    sprintf(mac_str, "%02X:%02X:%02X:%02X:%02X:%02X",
+            mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+    char post_data[256];
+    sprintf(post_data,
+            "{\"mac_address\":\"%s\","
+            "\"controller_mac_address\":\"%s\","
+            "\"device_type\":\"S\"}",
+            mac_address, mac_str);
+    char local_response_buffer[4096 + 1] = {0};
+    esp_http_client_config_t config = {
+        .host = "207.211.177.254",
+        .port = 8080,
+        .path = "/api/device/register",
+        .method = HTTP_METHOD_POST,
+        .event_handler = _http_event_handler,
+        .user_data = local_response_buffer, // Pass address of local buffer to get response
+        .disable_auto_redirect = true,
+    };
+    esp_http_client_handle_t client = esp_http_client_init(&config);
+    esp_http_client_set_post_field(client, post_data, strlen(post_data));
+    esp_http_client_set_header(client, "Content-Type", "application/json");
+    esp_err_t err = esp_http_client_perform(client);
+    if (err == ESP_OK)
+    {
+        int response_code = esp_http_client_get_status_code(client);
+        if (response_code == 400)
+        {
+            printf("Already Registered\n");
+        }
+        else if (response_code == 201)
+        {
+            printf("Successfully requested\n");
+        }
+    }
+    else
+    {
+        printf("HTTP failed\n");
+    }
+    esp_http_client_cleanup(client);
+}
+
+void handle_sub_node_auth(const char *mac_address)
+{
+    char path[128];
+    sprintf(path, "/api/device/auth/%s", mac_address);
+    char local_response_buffer[4096 + 1] = {0};
+    esp_http_client_config_t config = {
+        .host = "207.211.177.254",
+        .port = 8080,
+        .path = path,
+        .method = HTTP_METHOD_GET,
+        .event_handler = _http_event_handler,
+        .user_data = local_response_buffer, // Pass address of local buffer to get response
+        .disable_auto_redirect = true,
+    };
+    esp_http_client_handle_t client = esp_http_client_init(&config);
+    esp_err_t err = esp_http_client_perform(client);
+    if (err == ESP_OK)
+    {
+        int response_code = esp_http_client_get_status_code(client);
+        if (response_code == 404)
+        {
+            create_device_request(mac_address);
+            esp_wifi_deauth_sta(pending_mac_bytes);
+        }
+        else if (response_code == 200)
+        {
+            printf("Allowed MAC address to connect : %s\n", mac_address);
+        }
+        else if (response_code == 401)
+        {
+            printf("Mac address %s not yet authenticated\n", mac_address);
+            esp_wifi_deauth_sta(pending_mac_bytes);
+        }
+    }
+    else
+    {
+        printf("Auth failed\n");
+    }
+    mac_pending = false;
+    esp_http_client_cleanup(client);
+}
+
 void http_task(void *pv)
 {
     for (;;)
@@ -99,7 +190,23 @@ void http_task(void *pv)
         case 1:
             send_register_request();
             break;
+        case 2:
+            if (mac_pending)
+            {
+                char pending_mac_str[18];
 
+                sprintf(pending_mac_str,
+                        "%02X:%02X:%02X:%02X:%02X:%02X",
+                        pending_mac_bytes[0],
+                        pending_mac_bytes[1],
+                        pending_mac_bytes[2],
+                        pending_mac_bytes[3],
+                        pending_mac_bytes[4],
+                        pending_mac_bytes[5]);
+                handle_sub_node_auth(pending_mac_str);
+                mac_pending = false;
+            }
+            break;
         default:
             printf("Unknown request number: %d\n", http_request_number);
             break;
@@ -148,11 +255,17 @@ static void mqtt_event_handler(void *arg, esp_event_base_t base, int32_t id, voi
 
 static void start_local_client()
 {
+    uint8_t mac[6];
+    esp_wifi_get_mac(WIFI_IF_STA, mac);
+
+    static char mac_str[18];
+    sprintf(mac_str, "%02X:%02X:%02X:%02X:%02X:%02X",
+            mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
     esp_mqtt_client_config_t mqtt_cfg = {
         .broker.address.hostname = "127.0.0.1",
         .broker.address.transport = MQTT_TRANSPORT_OVER_TCP,
         .broker.address.port = 1883,
-    };
+        .credentials.username = mac_str};
     client = esp_mqtt_client_init(&mqtt_cfg);
     esp_mqtt_client_register_event(client, ESP_EVENT_ANY_ID, mqtt_event_handler, NULL);
     esp_mqtt_client_start(client);
@@ -164,7 +277,18 @@ static void wifi_event_handler(void *arg, esp_event_base_t base, int32_t id, voi
     {
     case WIFI_EVENT_AP_STACONNECTED:
         wifi_event_ap_staconnected_t *connect_event = (wifi_event_ap_staconnected_t *)data;
-        printf("AP MODE: Station " MACSTR " connected\n", MAC2STR(connect_event->mac));
+        if (!mac_pending)
+        {
+            printf("AP MODE: Station " MACSTR " connected\n", MAC2STR(connect_event->mac));
+            memcpy(pending_mac_bytes, connect_event->mac, 6);
+            mac_pending = true;
+            http_request_number = 2;
+            xTaskNotifyGive(http_task_handle);
+        }
+        else
+        {
+            esp_wifi_deauth_sta(connect_event->mac);
+        }
         break;
     case WIFI_EVENT_AP_STADISCONNECTED:
         wifi_event_ap_stadisconnected_t *disconnect_event = (wifi_event_ap_stadisconnected_t *)data;
