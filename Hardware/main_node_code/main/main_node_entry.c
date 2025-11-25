@@ -22,7 +22,9 @@ typedef struct mosq_broker_config mosq_broker_config_t;
 static volatile bool is_broker_started = false;
 static TaskHandle_t http_task_handle = NULL;
 static esp_mqtt_client_handle_t client = NULL;
+esp_netif_t *ap_netif = NULL;
 uint8_t pending_mac_bytes[6];
+uint16_t pending_aid = 0;
 bool mac_pending = false;
 
 esp_err_t _http_event_handler(esp_http_client_event_t *evt)
@@ -153,29 +155,29 @@ void handle_sub_node_auth(const char *mac_address)
     };
     esp_http_client_handle_t client = esp_http_client_init(&config);
     esp_err_t err = esp_http_client_perform(client);
-    if (err == ESP_OK)
+
+    int response_code = esp_http_client_get_status_code(client);
+    if (response_code == 404)
     {
-        int response_code = esp_http_client_get_status_code(client);
-        if (response_code == 404)
-        {
-            create_device_request(mac_address);
-            esp_wifi_deauth_sta(pending_mac_bytes);
-        }
-        else if (response_code == 200)
-        {
-            printf("Allowed MAC address to connect : %s\n", mac_address);
-        }
-        else if (response_code == 401)
-        {
-            printf("Mac address %s not yet authenticated\n", mac_address);
-            esp_wifi_deauth_sta(pending_mac_bytes);
-        }
+        create_device_request(mac_address);
+        esp_wifi_deauth_sta(pending_aid);
+    }
+    else if (response_code == 200)
+    {
+        printf("Allowed MAC address to connect : %s\n", mac_address);
+    }
+    else if (response_code == 401)
+    {
+        printf("Mac address %s not yet authenticated\n", mac_address);
+        esp_wifi_deauth_sta(pending_aid);
     }
     else
     {
-        printf("Auth failed\n");
+        printf("Unexpected outcome. ERROR\n");
     }
+
     mac_pending = false;
+    esp_netif_dhcps_start(ap_netif);
     esp_http_client_cleanup(client);
 }
 
@@ -276,18 +278,21 @@ static void wifi_event_handler(void *arg, esp_event_base_t base, int32_t id, voi
     switch (id)
     {
     case WIFI_EVENT_AP_STACONNECTED:
+        printf("Heres to hoping\n");
         wifi_event_ap_staconnected_t *connect_event = (wifi_event_ap_staconnected_t *)data;
+        esp_netif_dhcps_stop(ap_netif);
         if (!mac_pending)
         {
             printf("AP MODE: Station " MACSTR " connected\n", MAC2STR(connect_event->mac));
             memcpy(pending_mac_bytes, connect_event->mac, 6);
+            pending_aid = connect_event->aid;
             mac_pending = true;
             http_request_number = 2;
             xTaskNotifyGive(http_task_handle);
         }
         else
         {
-            esp_wifi_deauth_sta(connect_event->mac);
+            esp_wifi_deauth_sta(connect_event->aid);
         }
         break;
     case WIFI_EVENT_AP_STADISCONNECTED:
@@ -352,7 +357,7 @@ void app_main(void)
     ESP_ERROR_CHECK(esp_wifi_init(&init_config));
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_APSTA));
 
-    esp_netif_create_default_wifi_ap();
+    ap_netif = esp_netif_create_default_wifi_ap();
     wifi_config_t ap_config = {
         .ap = {
             .ssid = "wi-formula-test",
@@ -376,7 +381,7 @@ void app_main(void)
     xTaskCreate(
         http_task,
         "http_task",
-        8192,
+        24576,
         NULL,
         5,
         &http_task_handle);
