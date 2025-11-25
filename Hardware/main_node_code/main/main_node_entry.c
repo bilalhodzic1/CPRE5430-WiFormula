@@ -40,15 +40,33 @@ static void websocket_client_event_handler(void *arg, esp_event_base_t base, int
         printf("Websocket disconnected!\n");
         break;
     case WEBSOCKET_EVENT_DATA:
+    {
         esp_websocket_event_data_t *event = (esp_websocket_event_data_t *)data;
+        if (event->op_code != 1)
+        {
+            printf("Ignoring opcode %d\n", event->op_code);
+            break;
+        }
+        if (event->data_len <= 0)
+        {
+            break;
+        }
+        const char *payload = event->data_ptr + event->payload_offset;
+        int len = event->payload_len;
+        printf("len %d\n", len);
+        char cleaned_payload[len + 1];
+        memcpy(cleaned_payload, payload, len);
+        cleaned_payload[len] = '\0';
+        printf("Payload %s\n", cleaned_payload);
         esp_mqtt_client_publish(
             client,
             "home/random",
-            (char *)event->data_ptr,
-            event->data_len,
-            1,
+            cleaned_payload,
+            len + 1,
+            0,
             0);
         break;
+    }
     default:
         printf("Some other event occured\n");
         break;
@@ -60,12 +78,12 @@ esp_websocket_client_handle_t ws_client;
 void start_websocket()
 {
     esp_websocket_client_config_t ws_cfg = {
-        .uri = "ws://207.211.177.254:8080/ws/formula-data-stream",
+        .uri = "ws://207.211.177.254:8080/formula-data-stream",
     };
 
     ws_client = esp_websocket_client_init(&ws_cfg);
-    esp_websocket_client_register_events(ws_client,
-                                         WEBSOCKET_EVENT_ANY, websocket_client_event_handler, NULL);
+    esp_websocket_register_events(ws_client,
+                                  WEBSOCKET_EVENT_ANY, websocket_client_event_handler, NULL);
 
     esp_websocket_client_start(ws_client);
 }
