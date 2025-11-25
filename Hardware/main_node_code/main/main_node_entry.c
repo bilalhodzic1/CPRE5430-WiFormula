@@ -15,6 +15,8 @@
 #include "mqtt_client.h"
 #include "esp_http_client.h"
 #include "cJSON.h"
+#include "esp_websocket_client.h"
+
 static volatile bool is_connected = false;
 int http_request_number = 0;
 typedef struct mosq_broker_config mosq_broker_config_t;
@@ -26,6 +28,47 @@ esp_netif_t *ap_netif = NULL;
 uint8_t pending_mac_bytes[6];
 uint16_t pending_aid = 0;
 bool mac_pending = false;
+
+static void websocket_client_event_handler(void *arg, esp_event_base_t base, int32_t id, void *data)
+{
+    switch (id)
+    {
+    case WEBSOCKET_EVENT_CONNECTED:
+        printf("Websocket connected successfully\n");
+        break;
+    case WEBSOCKET_EVENT_DISCONNECTED:
+        printf("Websocket disconnected!\n");
+        break;
+    case WEBSOCKET_EVENT_DATA:
+        esp_websocket_event_data_t *event = (esp_websocket_event_data_t *)data;
+        esp_mqtt_client_publish(
+            client,
+            "home/random",
+            (char *)event->data_ptr,
+            event->data_len,
+            1,
+            0);
+        break;
+    default:
+        printf("Some other event occured\n");
+        break;
+    }
+}
+
+esp_websocket_client_handle_t ws_client;
+
+void start_websocket()
+{
+    esp_websocket_client_config_t ws_cfg = {
+        .uri = "ws://207.211.177.254:8080/ws/formula-data-stream",
+    };
+
+    ws_client = esp_websocket_client_init(&ws_cfg);
+    esp_websocket_client_register_events(ws_client,
+                                         WEBSOCKET_EVENT_ANY, websocket_client_event_handler, NULL);
+
+    esp_websocket_client_start(ws_client);
+}
 
 esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 {
@@ -216,17 +259,6 @@ void http_task(void *pv)
     }
 }
 
-static void mqtt_random_publish()
-{
-    while (1)
-    {
-        char buf[16];
-        snprintf(buf, sizeof(buf), "%ld", esp_random() % 100);
-        esp_mqtt_client_publish(client, "home/random", buf, 0, 1, 0);
-        vTaskDelay(pdMS_TO_TICKS(10000));
-    }
-}
-
 static void start_mqtt_broker(void *args)
 {
     is_broker_started = true;
@@ -244,7 +276,7 @@ static void mqtt_event_handler(void *arg, esp_event_base_t base, int32_t id, voi
     {
     case MQTT_EVENT_CONNECTED:
         printf("Connected to MQTT successfully\n");
-        xTaskCreate(mqtt_random_publish, "mqtt_pub", 4096, NULL, 4, NULL);
+        start_websocket();
         break;
     case MQTT_EVENT_PUBLISHED:
         esp_mqtt_event_handle_t event = data;
