@@ -1,33 +1,4 @@
-#include <stdio.h>
-#include <inttypes.h>
-#include "sdkconfig.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "esp_chip_info.h"
-#include "esp_system.h"
-#include "esp_mac.h"
-#include "esp_netif.h"
-#include "esp_wifi.h"
-#include "nvs_flash.h"
-#include "lwip/inet.h"
-#include "wifi_config_local.h"
-#include "mosq_broker.h"
-#include "mqtt_client.h"
-#include "esp_http_client.h"
-#include "cJSON.h"
-#include "esp_websocket_client.h"
-
-static volatile bool is_connected = false;
-int http_request_number = 0;
-typedef struct mosq_broker_config mosq_broker_config_t;
-
-static volatile bool is_broker_started = false;
-static TaskHandle_t http_task_handle = NULL;
-static esp_mqtt_client_handle_t client = NULL;
-esp_netif_t *ap_netif = NULL;
-uint8_t pending_mac_bytes[6];
-uint16_t pending_aid = 0;
-bool mac_pending = false;
+#include "main.h"
 
 static void websocket_client_event_handler(void *arg, esp_event_base_t base, int32_t id, void *data)
 {
@@ -72,8 +43,6 @@ static void websocket_client_event_handler(void *arg, esp_event_base_t base, int
         break;
     }
 }
-
-esp_websocket_client_handle_t ws_client;
 
 void start_websocket()
 {
