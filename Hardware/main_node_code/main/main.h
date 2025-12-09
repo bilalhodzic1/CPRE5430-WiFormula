@@ -9,7 +9,6 @@
 #include "nvs_flash.h"
 #include "lwip/inet.h"
 #include "wifi_config_local.h"
-#include "mosq_broker.h"
 #include "esp_http_client.h"
 #include "cJSON.h"
 #include "globals.h"
@@ -17,4 +16,5 @@
 #include "start_websocket.h"
 #include "http_event_handler.h"
 #include "http_task.h"
+#include "mqtt_startups.h"
 #endif
