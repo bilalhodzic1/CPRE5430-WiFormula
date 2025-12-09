@@ -1,31 +1,5 @@
 #include "main.h"
 
-static void attempt_connection_cb()
-{
-    printf("DEBUG: Attempting connection\n");
-    if (!is_connected)
-    {
-        esp_wifi_connect();
-    }
-}
-
-static void start_connection_attempt_timer()
-{
-    if (!connection_attempter)
-    {
-        connection_attempter = xTimerCreate("attempter",
-                                            pdMS_TO_TICKS(10 * 1000),
-                                            pdTRUE, NULL, attempt_connection_cb);
-    }
-    xTimerStart(connection_attempter, 0);
-}
-
-static void stop_connection_attempt_timer()
-{
-    if (connection_attempter)
-        xTimerStop(connection_attempter, 0);
-}
-
 static void mqtt_event_handler(void *arg, esp_event_base_t base, int32_t id, void *data)
 {
     esp_mqtt_event_handle_t event = data;
