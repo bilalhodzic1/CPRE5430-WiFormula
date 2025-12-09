@@ -13,4 +13,6 @@
 #include "esp_http_client.h"
 #include "cJSON.h"
 #include "globals.h"
+#include "websocket_client_handler.h"
+#include "start_websocket.h"
 #endif
