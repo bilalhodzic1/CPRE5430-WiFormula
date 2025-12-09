@@ -14,5 +14,6 @@
 #include "mqtt_client.h"
 #include "globals.h"
 #include "connection_attempter.h"
-
+#include "wifi_event_handler.h"
+#include "ip_event_handler.h"
 #endif
