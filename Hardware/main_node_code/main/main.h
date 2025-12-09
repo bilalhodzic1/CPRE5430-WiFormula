@@ -17,4 +17,7 @@
 #include "http_event_handler.h"
 #include "http_task.h"
 #include "mqtt_startups.h"
+#include "wifi_event_handler.h"
+#include "ip_event_handler.h"
+#include "wifi_startups.h"
 #endif
