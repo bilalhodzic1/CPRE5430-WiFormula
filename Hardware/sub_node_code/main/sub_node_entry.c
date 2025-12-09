@@ -1,19 +1,4 @@
-#include <stdio.h>
-#include <inttypes.h>
-#include "sdkconfig.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "esp_chip_info.h"
-#include "esp_system.h"
-#include "esp_mac.h"
-#include "esp_netif.h"
-#include "esp_wifi.h"
-#include "nvs_flash.h"
-#include "lwip/inet.h"
-#include "mqtt_client.h"
-
-static TimerHandle_t connection_attempter = NULL;
-static volatile bool is_connected = false;
+#include "main.h"
 
 static void attempt_connection_cb()
 {
