@@ -15,4 +15,6 @@
 #include "globals.h"
 #include "websocket_client_handler.h"
 #include "start_websocket.h"
+#include "http_event_handler.h"
+#include "http_task.h"
 #endif
