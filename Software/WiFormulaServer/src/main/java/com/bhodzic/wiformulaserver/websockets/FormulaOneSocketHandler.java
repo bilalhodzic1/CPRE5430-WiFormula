@@ -5,13 +5,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
+import org.springframework.web.socket.CloseStatus;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
+
 @Component
 public class FormulaOneSocketHandler extends TextWebSocketHandler {
-    private Map<WebSocketDeviceDetail ,WebSocketSession> esp32Session = new HashMap<>();
+    private Map<String ,WebSocketDeviceDetail> sessionsMap = new HashMap<>();
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
@@ -29,23 +30,20 @@ public class FormulaOneSocketHandler extends TextWebSocketHandler {
                     deviceDetail.macAddress = keyValue[1];
                 }
             }
-            esp32Session.put(deviceDetail, session);
-            actualDevice = true;
+            deviceDetail.session = session;
+            sessionsMap.put(session.getId(), deviceDetail);
         }
-        if (actualDevice) {
-            new Thread(() -> {
-                Random r = new Random();
-                while (session.isOpen()) {
-                    try {
-                        int num = r.nextInt(100) + 1; // 1–100
-                        session.sendMessage(new TextMessage(String.valueOf(num)));
-                        System.out.println("Sent: " + num);
-                        Thread.sleep(10000); // 1 second delay
-                    } catch (Exception e) {
-                        break;
-                    }
-                }
-            }).start();
+    }
+    @Override
+    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+        for (Map.Entry<String, WebSocketDeviceDetail> entry : sessionsMap.entrySet()) {
+            if (entry.getValue().deviceType.equals("ESP32")) {
+                entry.getValue().session.sendMessage(message);
+            }
         }
+    }
+    @Override
+    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+        sessionsMap.remove(session.getId());
     }
 }
