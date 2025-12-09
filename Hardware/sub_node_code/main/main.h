@@ -16,4 +16,5 @@
 #include "connection_attempter.h"
 #include "wifi_event_handler.h"
 #include "ip_event_handler.h"
+#include "wifi_config_local.h"
 #endif

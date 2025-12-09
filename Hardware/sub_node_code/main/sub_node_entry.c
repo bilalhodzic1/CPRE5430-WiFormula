@@ -31,8 +31,8 @@ void app_main(void)
 
     wifi_config_t station_config = {
         .sta = {
-            .ssid = "wi-formula-test",
-            .password = "test_pass",
+            .ssid = MAIN_NODE_SSID,
+            .password = MAIN_NODE_PASS,
         },
     };
 
