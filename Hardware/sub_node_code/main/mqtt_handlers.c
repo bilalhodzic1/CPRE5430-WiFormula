@@ -23,19 +23,31 @@ void mqtt_event_handler(void *arg, esp_event_base_t base, int32_t id, void *data
     {
     case MQTT_EVENT_CONNECTED:
         printf("Connected to MQTT successfully\n");
-        esp_mqtt_client_subscribe(client, "home/random", 0);
+        esp_mqtt_client_subscribe(client, TOPIC_ENDPOINT, 0);
         break;
     case MQTT_EVENT_SUBSCRIBED:
         printf("Successfully subscribed\n");
         break;
     case MQTT_EVENT_DATA:
         int number = atoi((char *)event->data);
-        uint8_t r = (number * 5) % 128;
-        uint8_t g = (number * 3) % 128;
-        uint8_t b = (number * 7) % 128;
-
-        ESP_ERROR_CHECK(led_strip_set_pixel(led_strip, TEST_LED_INDEX, g, r, b));
-        ESP_ERROR_CHECK(led_strip_refresh(led_strip));
+        switch (number)
+        {
+        case 1:
+            ESP_ERROR_CHECK(led_strip_set_pixel(led_strip, TEST_LED_INDEX, 128, 0, 0));
+            ESP_ERROR_CHECK(led_strip_refresh(led_strip));
+            break;
+        case 2:
+            ESP_ERROR_CHECK(led_strip_set_pixel(led_strip, TEST_LED_INDEX, 0, 128, 0));
+            ESP_ERROR_CHECK(led_strip_refresh(led_strip));
+            break;
+        case 3:
+            ESP_ERROR_CHECK(led_strip_set_pixel(led_strip, TEST_LED_INDEX, 87, 120, 0));
+            ESP_ERROR_CHECK(led_strip_refresh(led_strip));
+            break;
+        default:
+            ESP_ERROR_CHECK(led_strip_clear(led_strip));
+            break;
+        }
         break;
     default:
         break;

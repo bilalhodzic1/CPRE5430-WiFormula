@@ -36,19 +36,20 @@ void websocket_client_event_handler(void *arg, esp_event_base_t base, int32_t id
             printf("JSON parse error!\n");
             break;
         }
-        cJSON *random_number = cJSON_GetObjectItem(root, "random_int");
-        int random_value = random_number->valueint;
-        printf("Parsed random_int = %d\n", random_value);
+        cJSON *flag_value = cJSON_GetObjectItem(root, "flag_value");
+        if (flag_value != NULL)
+        {
+            char buf[16];
+            snprintf(buf, sizeof(buf), "%d", flag_value->valueint);
+            esp_mqtt_client_publish(
+                client,
+                "home/flags",
+                buf,
+                len + 1,
+                0,
+                0);
+        }
         cJSON_Delete(root);
-        char buf[16];
-        snprintf(buf, sizeof(buf), "%d", random_value);
-        esp_mqtt_client_publish(
-            client,
-            "home/random",
-            buf,
-            len + 1,
-            0,
-            0);
         break;
     }
     default:

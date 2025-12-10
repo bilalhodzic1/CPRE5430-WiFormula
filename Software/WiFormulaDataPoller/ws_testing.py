@@ -9,9 +9,9 @@ async def connect_to_websocket(uri):
     async with websockets.connect(uri) as ws:
         print(f"Connected to {uri}")
         while True:
-            random_int = random.randint(1, 100)
+            random_int = random.randint(1, 3)
             test_json = {
-                "random_int" : random_int
+                "flag_value" : random_int
             }
             await ws.send(json.dumps(test_json))
             time.sleep(5)
