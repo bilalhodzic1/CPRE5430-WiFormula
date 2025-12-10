@@ -12,7 +12,6 @@ export default function MainLayout({userId}) {
             setUserLoading(true);
             const response = await fetch(`${CONFIG.API_URL}/api/device/user-devices/${userId}`);
             const data = await response.json();
-            console.log(data);
             setUserRegisteredDevices(data);
         }
         fetchUserRegistered().then(() => setUserLoading(false));

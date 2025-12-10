@@ -4,9 +4,21 @@ export default function UserDevices({userRegisteredDevices, userLoading, refresh
             <div className="w-5 h-5 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"/>
             <span className="text-gray-600 text-sm">Loading...</span>
         </div> :
-        userRegisteredDevices.map((device) => (
-            <div key={device['mac_address']} className="p-3 mb-2 bg-gray-100 rounded-md">
-                {device['mac_address']}
+        userRegisteredDevices.filter((x) => x["device_type"] === "C").map((device) => (
+            <div key={device.mac_address} className="p-3 mb-2 bg-gray-100 rounded-md">
+                {device.mac_address} - Controller
+                {device.children && device.children.length > 0 && (
+                    <div className="mt-2 ml-4">
+                        {device.children.map((child) => (
+                            <div
+                                key={child.mac_address}
+                                className="p-2 mb-1 bg-gray-200 rounded-md text-sm"
+                            >
+                                {child.mac_address} - Sub Node
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
         ));
 
