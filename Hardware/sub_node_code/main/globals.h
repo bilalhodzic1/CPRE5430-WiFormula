@@ -3,8 +3,9 @@
 
 #include "freertos/FreeRTOS.h"
 #include <stdbool.h>
+#include "led_strip.h"
 
 extern TimerHandle_t connection_attempter;
 extern volatile bool is_connected;
-
+extern led_strip_handle_t led_strip;
 #endif

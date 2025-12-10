@@ -29,8 +29,13 @@ void mqtt_event_handler(void *arg, esp_event_base_t base, int32_t id, void *data
         printf("Successfully subscribed\n");
         break;
     case MQTT_EVENT_DATA:
-        printf("TOPIC=%.*s\n", event->topic_len, event->topic);
-        printf("DATA=%.*s\n", event->data_len, event->data);
+        int number = atoi((char *)event->data);
+        uint8_t r = (number * 5) % 128;
+        uint8_t g = (number * 3) % 128;
+        uint8_t b = (number * 7) % 128;
+
+        ESP_ERROR_CHECK(led_strip_set_pixel(led_strip, TEST_LED_INDEX, g, r, b));
+        ESP_ERROR_CHECK(led_strip_refresh(led_strip));
         break;
     default:
         break;
