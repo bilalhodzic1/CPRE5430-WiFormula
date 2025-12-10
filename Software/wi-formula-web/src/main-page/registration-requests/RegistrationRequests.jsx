@@ -1,11 +1,12 @@
-import {useEffect, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import CONFIG from "../../config.js";
 
 export default function RegistrationRequests({userId, setUserRegisteredDevices, userRegisteredDevices}) {
     const [allUserRequests, setAllUserRequests] = useState([]);
     const [allRequestsLoading, setAllRequestsLoading] = useState(true);
-    useEffect(() => {
+    const refreshUserRequests = useCallback(() => {
         const fetchAllRequests = async () => {
+            setAllRequestsLoading(true);
             const response = await fetch(`${CONFIG.API_URL}/api/device/requests/${userId}`);
             const data = await response.json();
             console.log(data)
@@ -13,6 +14,9 @@ export default function RegistrationRequests({userId, setUserRegisteredDevices, 
         }
         fetchAllRequests().then(() => setAllRequestsLoading(false));
     }, [userId])
+    useEffect(() => {
+        refreshUserRequests()
+    }, [refreshUserRequests])
 
     async function approveDevice(request_id) {
         const approveRequestObject = {
@@ -59,7 +63,12 @@ export default function RegistrationRequests({userId, setUserRegisteredDevices, 
         <>
             <div className="w-full p-4">
                 <div className="w-full bg-white shadow-md rounded-lg p-4">
-                    <h2 className="text-lg font-semibold mb-2">Approval Requests</h2>
+                    <div className="flex justify-between items-center mb-2">
+                        <h2 className="text-lg font-semibold">Approval Requests</h2>
+                        <button type={"button"} className={"cursor-pointer bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-md"}
+                                onClick={refreshUserRequests}>Refresh
+                        </button>
+                    </div>
                     {listItems}
                 </div>
             </div>

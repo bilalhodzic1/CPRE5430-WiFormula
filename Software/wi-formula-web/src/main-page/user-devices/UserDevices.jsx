@@ -1,4 +1,4 @@
-export default function UserDevices({userRegisteredDevices, userLoading}) {
+export default function UserDevices({userRegisteredDevices, userLoading, refreshUserDevices}) {
     const listItems = userLoading ?
         <div className="w-full flex items-center gap-3 p-3 bg-gray-100 rounded-md">
             <div className="w-5 h-5 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"/>
@@ -15,7 +15,15 @@ export default function UserDevices({userRegisteredDevices, userLoading}) {
         <>
             <div className="w-full p-4">
                 <div className="w-full bg-white shadow-md rounded-lg p-4">
-                    <h2 className="text-lg font-semibold mb-2">User Devices</h2>
+                    <div className={"flex justify-between items-center mb-2"}>
+                        <h2 className="text-lg font-semibold">
+                            User Devices
+                        </h2>
+                        <button type={"button"}
+                                className={"cursor-pointer bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-md"}
+                                onClick={refreshUserDevices}>Refresh
+                        </button>
+                    </div>
                     {listItems}
                 </div>
             </div>
