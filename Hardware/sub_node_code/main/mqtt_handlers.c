@@ -30,24 +30,7 @@ void mqtt_event_handler(void *arg, esp_event_base_t base, int32_t id, void *data
         break;
     case MQTT_EVENT_DATA:
         int number = atoi((char *)event->data);
-        switch (number)
-        {
-        case 1:
-            ESP_ERROR_CHECK(led_strip_set_pixel(led_strip, TEST_LED_INDEX, 128, 0, 0));
-            ESP_ERROR_CHECK(led_strip_refresh(led_strip));
-            break;
-        case 2:
-            ESP_ERROR_CHECK(led_strip_set_pixel(led_strip, TEST_LED_INDEX, 0, 128, 0));
-            ESP_ERROR_CHECK(led_strip_refresh(led_strip));
-            break;
-        case 3:
-            ESP_ERROR_CHECK(led_strip_set_pixel(led_strip, TEST_LED_INDEX, 87, 120, 0));
-            ESP_ERROR_CHECK(led_strip_refresh(led_strip));
-            break;
-        default:
-            ESP_ERROR_CHECK(led_strip_clear(led_strip));
-            break;
-        }
+        change_led_color_for_flag(number);
         break;
     default:
         break;
