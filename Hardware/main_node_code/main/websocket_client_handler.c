@@ -29,10 +29,23 @@ void websocket_client_event_handler(void *arg, esp_event_base_t base, int32_t id
         memcpy(cleaned_payload, payload, len);
         cleaned_payload[len] = '\0';
         printf("Payload %s\n", cleaned_payload);
+
+        cJSON *root = cJSON_Parse(cleaned_payload);
+        if (!root)
+        {
+            printf("JSON parse error!\n");
+            break;
+        }
+        cJSON *random_number = cJSON_GetObjectItem(root, "random_int");
+        int random_value = random_number->valueint;
+        printf("Parsed random_int = %d\n", random_value);
+        cJSON_Delete(root);
+        char buf[16];
+        snprintf(buf, sizeof(buf), "%d", random_value);
         esp_mqtt_client_publish(
             client,
             "home/random",
-            cleaned_payload,
+            buf,
             len + 1,
             0,
             0);

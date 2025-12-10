@@ -1,4 +1,4 @@
 #include "websocket_client_handler.h"
+#include "esp_mac.h"
+#include "esp_wifi.h"
 void start_websocket();
-
-#define WS_URI "ws://207.211.177.254:8080/formula-data-stream"

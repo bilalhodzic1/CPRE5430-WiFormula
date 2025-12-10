@@ -28,5 +28,5 @@ async def connect_to_websocket(uri):
         #         break
 
 if __name__ == "__main__":
-    websocket_uri = "ws://localhost:8080/formula-data-stream?device=PYTHON&mac=NOMAC"
+    websocket_uri = "ws://207.211.177.254:8080/formula-data-stream?device=PYTHON&mac=NOMAC"
     asyncio.run(connect_to_websocket(websocket_uri))
