@@ -39,4 +39,29 @@ void app_main(void)
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &station_config));
     ESP_ERROR_CHECK(esp_wifi_start());
+
+    led_strip_config_t strip_config = {
+        .strip_gpio_num = LED_GPIO,                                  // The GPIO that connected to the LED strip's data line
+        .max_leds = NUM_LEDS,                                        // The number of LEDs in the strip,
+        .led_model = LED_MODEL_WS2812,                               // LED strip model
+        .color_component_format = LED_STRIP_COLOR_COMPONENT_FMT_GRB, // The color order of the strip: GRB
+        .flags = {
+            .invert_out = false, // don't invert the output signal
+        }};
+    led_strip_rmt_config_t rmt_config = {
+        .clk_src = RMT_CLK_SRC_DEFAULT,        // different clock source can lead to different power consumption
+        .resolution_hz = LED_STRIP_RMT_RES_HZ, // RMT counter clock frequency
+        .mem_block_symbols = 0,                // the memory block size used by the RMT channel
+        .flags = {
+            .with_dma = 0, // Using DMA can improve performance when driving more LEDs
+        }};
+    led_strip_handle_t led_strip;
+    ESP_ERROR_CHECK(led_strip_new_rmt_device(&strip_config, &rmt_config, &led_strip));
+    printf("MADE LED ON BACKEND\n");
+    ESP_ERROR_CHECK(led_strip_set_pixel(led_strip, TEST_LED_INDEX, 5, 5, 5));
+    ESP_ERROR_CHECK(led_strip_refresh(led_strip));
+    while (1)
+    {
+        vTaskDelay(pdMS_TO_TICKS(500));
+    }
 }
