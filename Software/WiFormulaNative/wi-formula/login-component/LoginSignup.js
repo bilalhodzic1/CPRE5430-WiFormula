@@ -1,7 +1,8 @@
 import {useState} from "react";
 import CONFIG from "../config";
 import {StyleSheet, View, Text, TextInput, Button, Pressable, TouchableWithoutFeedback, Keyboard} from "react-native";
-export default function LoginSignup({setIsLoggedIn, setUserId}){
+
+export default function LoginSignup({setIsLoggedIn, setUserId}) {
     const [userName, setUserName] = useState("");
     const [isUsernameFocused, setIsUsernameFocused] = useState(false);
     const [validUsername, setValidUsername] = useState(true);
@@ -14,17 +15,17 @@ export default function LoginSignup({setIsLoggedIn, setUserId}){
     const styles = StyleSheet.create({
         mainContainer: {
             display: "flex",
-            alignItems : "center",
+            alignItems: "center",
             justifyContent: "center",
             backgroundColor: "#f3f4f6",
             minHeight: "100%",
         },
-        headerText : {
+        headerText: {
             fontSize: 24,
             fontWeight: "600",
             marginBottom: 20
         },
-        input : {
+        input: {
             width: "80%",
             borderRadius: 4,
             height: 40,
@@ -33,10 +34,10 @@ export default function LoginSignup({setIsLoggedIn, setUserId}){
             marginBottom: 10,
             padding: 10
         },
-        inputFocused : {
+        inputFocused: {
             borderColor: "#3b82f6",
             shadowColor: "#3b82f6",
-            shadowOffset: { width: 0, height: 0 },
+            shadowOffset: {width: 0, height: 0},
             shadowOpacity: 0.15,
             shadowRadius: 6,
             elevation: 2
@@ -79,6 +80,7 @@ export default function LoginSignup({setIsLoggedIn, setUserId}){
             },
             body: JSON.stringify(loginRequest)
         });
+        console.log(response)
         setFormSubmitting(false)
         if (response.status === 401) {
             setInvalidLogin(true)
@@ -124,68 +126,77 @@ export default function LoginSignup({setIsLoggedIn, setUserId}){
             setIsLoggedIn(true)
         }
     }
+
+    const errorView = inValidLogin || !validUsername || !validPassword ? (
+        <View style={{backgroundColor: "#FF8A8A", padding: 7, borderColor : "red", borderRadius : 4, borderWidth : 1, marginTop : 10,  width: "80%"}}>
+            {inValidLogin && <Text style={{color: "white"}}>Invalid username or password</Text>}
+            {!validUsername && <Text style={{color: "white"}}>Username is required</Text>}
+            {!validPassword && <Text style={{color: "white"}}>Password is required</Text>}
+        </View>
+    ) : null;
     return (
         <TouchableWithoutFeedback onPress={() => {
             setPasswordIsFocused(false);
             setIsUsernameFocused(false);
             Keyboard.dismiss();
         }}>
-        <View style={styles.mainContainer}>
-            <Text style={styles.headerText}>Login</Text>
-            <View style={{width: "80%", display: "flex", justifyContent: "flex-start", marginBottom: 6}}>
-                <Text style={{color: "#6e6e6e"}}>Username</Text>
-            </View>
-            <TextInput
-                style={[styles.input, isUsernameFocused && styles.inputFocused]}
-                onChangeText={setUserName}
-                value={userName}
-                placeholder="Username"
-                onFocus={() => setIsUsernameFocused(true)}
-                onBlur={() => setIsUsernameFocused(false)}
-            />
-            <View style={{width: "80%", display: "flex", justifyContent: "flex-start", marginBottom: 6}}>
-                <Text style={{color: "#6e6e6e"}}>Password</Text>
-            </View>
+            <View style={styles.mainContainer}>
+                <Text style={styles.headerText}>Login</Text>
+                <View style={{width: "80%", display: "flex", justifyContent: "flex-start", marginBottom: 6}}>
+                    <Text style={{color: "#6e6e6e"}}>Username</Text>
+                </View>
+                <TextInput
+                    style={[styles.input, isUsernameFocused && styles.inputFocused]}
+                    onChangeText={setUserName}
+                    value={userName}
+                    placeholder="Username"
+                    onFocus={() => setIsUsernameFocused(true)}
+                    onBlur={() => setIsUsernameFocused(false)}
+                />
+                <View style={{width: "80%", display: "flex", justifyContent: "flex-start", marginBottom: 6}}>
+                    <Text style={{color: "#6e6e6e"}}>Password</Text>
+                </View>
 
-            <TextInput
-                style={[styles.input, {marginBottom: 20}, isPasswordFocused && styles.inputFocused]}
-                onChangeText={setPassword}
-                value={password}
-                placeholder="*********"
-                onFocus={() => setPasswordIsFocused(true)}
-                onBlur={() => setPasswordIsFocused(false)}
-                secureTextEntry={true}
-            />
-            <Pressable
-                onPress={handleLogin}
-                disabled={formSubmitting}
-                style={({ pressed, focused }) => [
-                    styles.button,
-                    formSubmitting && styles.disabled,
-                    pressed && !formSubmitting && styles.pressed,
-                    focused && styles.focused,
-                    {marginBottom: 10}
-                ]}
-            >
-                <Text style={styles.text}>
-                    Login
-                </Text>
-            </Pressable>
-            <Pressable
-                onPress={handleSignUp}
-                disabled={formSubmitting}
-                style={({ pressed, focused }) => [
-                    styles.button,
-                    formSubmitting && styles.disabled,
-                    pressed && !formSubmitting && styles.pressed,
-                    focused && styles.focused,
-                ]}
-            >
-                <Text style={styles.text}>
-                    Sign Up
-                </Text>
-            </Pressable>
-        </View>
+                <TextInput
+                    style={[styles.input, {marginBottom: 20}, isPasswordFocused && styles.inputFocused]}
+                    onChangeText={setPassword}
+                    value={password}
+                    placeholder="*********"
+                    onFocus={() => setPasswordIsFocused(true)}
+                    onBlur={() => setPasswordIsFocused(false)}
+                    secureTextEntry={true}
+                />
+                <Pressable
+                    onPress={handleLogin}
+                    disabled={formSubmitting}
+                    style={({pressed, focused}) => [
+                        styles.button,
+                        formSubmitting && styles.disabled,
+                        pressed && !formSubmitting && styles.pressed,
+                        focused && styles.focused,
+                        {marginBottom: 10}
+                    ]}
+                >
+                    <Text style={styles.text}>
+                        Login
+                    </Text>
+                </Pressable>
+                <Pressable
+                    onPress={handleSignUp}
+                    disabled={formSubmitting}
+                    style={({pressed, focused}) => [
+                        styles.button,
+                        formSubmitting && styles.disabled,
+                        pressed && !formSubmitting && styles.pressed,
+                        focused && styles.focused,
+                    ]}
+                >
+                    <Text style={styles.text}>
+                        Sign Up
+                    </Text>
+                </Pressable>
+                {errorView}
+            </View>
         </TouchableWithoutFeedback>
     )
 }

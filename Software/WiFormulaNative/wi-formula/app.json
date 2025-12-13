@@ -17,7 +17,9 @@
       "bundleIdentifier": "com.bhodzic.wiformula",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "NS"
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true
+        }
       }
     },
     "android": {

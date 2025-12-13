@@ -1,7 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
 import LoginSignup from "./login-component/LoginSignup";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 
 export default function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(false)
