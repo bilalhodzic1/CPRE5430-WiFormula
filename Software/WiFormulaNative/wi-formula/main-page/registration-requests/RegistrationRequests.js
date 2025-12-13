@@ -57,7 +57,7 @@ export default function RegistrationRequests({userId, refreshUserDevices}) {
         refreshUserRequests()
     }, [refreshUserRequests])
 
-    async function approveDevice(request_id, mac_address) {
+    async function approveDevice(request_id) {
         const approveRequestObject = {
             "request_id": request_id,
             "user_id": userId
@@ -72,7 +72,7 @@ export default function RegistrationRequests({userId, refreshUserDevices}) {
                     body: JSON.stringify(approveRequestObject)
                 }
             );
-        const approvedDevice = await approveDeviceRequest.json();
+        await approveDeviceRequest.json();
         refreshUserDevices();
         setAllUserRequests(allUserRequests.filter(device => device['request_id'] !== request_id));
     }
@@ -86,7 +86,7 @@ export default function RegistrationRequests({userId, refreshUserDevices}) {
             <View key={device['request_id']} style={styles.deviceCard}>
                 <Text>{device['deviceToApprove']['mac_address']}</Text>
                 <Pressable style={styles.approveButton} onPress={async () => {
-                    await approveDevice(device['request_id'], device['deviceToApprove']['mac_address'])
+                    await approveDevice(device['request_id'])
                 }}>
                     <Text style={{color: "white"}}>Approve</Text>
                 </Pressable>
