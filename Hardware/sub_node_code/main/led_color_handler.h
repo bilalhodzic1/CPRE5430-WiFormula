@@ -1,4 +1,4 @@
-#define NUM_LEDS_ON 1
+#define NUM_LEDS_ON 60
 
 #include "globals.h"
 #include "led_strip.h"

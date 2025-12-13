@@ -27,7 +27,7 @@ allowed_flags = {"GREEN", "DOUBLE YELLOW", "YELLOW", "CLEAR", "CHEQUERED"}
 
 race_position_changes = position_data[20:]
 
-first_position_time = min(event["date"] for event in race_position_changes)
+first_position_time = datetime.fromisoformat("2025-05-04 20:03:42+00:00")
 
 filtered_flags = [
     flag for flag in flag_data
@@ -45,12 +45,14 @@ FLAG_TO_NUMBER = {
 
 allowed_flag_data = [item for item in filtered_flags if item['flag'] in allowed_flags]
 
-hadjars_race = [item for item in race_position_changes if item['driver_number'] == 6]
+driver_race = [item for item in race_position_changes if item['driver_number'] == 55]
 
-all_events = hadjars_race + allowed_flag_data
+all_events = driver_race + allowed_flag_data
 all_events.sort(key=lambda e: e["date"])
 
-async def connect_to_websocket(uri):
+async def connect_to_websocket(uri,
+    ping_interval=20,
+    ping_timeout=20,):
     async with websockets.connect(uri) as ws:
         race_start_time = all_events[0]["date"]   # first recorded instance
         sim_start_real = time.monotonic()
@@ -86,7 +88,7 @@ async def connect_to_websocket(uri):
 
                 current_index += 1
 
-            time.sleep(0.05)
+            await asyncio.sleep(0.05)
 
 if __name__ == "__main__":
     websocket_uri = "ws://207.211.177.254:8080/formula-data-stream?device=PYTHON&mac=NOMAC"
