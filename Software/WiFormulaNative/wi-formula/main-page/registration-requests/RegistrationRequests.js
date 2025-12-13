@@ -2,7 +2,7 @@ import {useCallback, useEffect, useState} from "react";
 import CONFIG from "../../config.js";
 import {ActivityIndicator, Pressable, StyleSheet, Text, View} from "react-native";
 
-export default function RegistrationRequests({userId, setUserRegisteredDevices, userRegisteredDevices}) {
+export default function RegistrationRequests({userId, refreshUserDevices}) {
     const [allUserRequests, setAllUserRequests] = useState([]);
     const [allRequestsLoading, setAllRequestsLoading] = useState(true);
     const styles = StyleSheet.create({
@@ -57,7 +57,7 @@ export default function RegistrationRequests({userId, setUserRegisteredDevices, 
         refreshUserRequests()
     }, [refreshUserRequests])
 
-    async function approveDevice(request_id) {
+    async function approveDevice(request_id, mac_address) {
         const approveRequestObject = {
             "request_id": request_id,
             "user_id": userId
@@ -73,7 +73,7 @@ export default function RegistrationRequests({userId, setUserRegisteredDevices, 
                 }
             );
         const approvedDevice = await approveDeviceRequest.json();
-        setUserRegisteredDevices([...userRegisteredDevices, approvedDevice]);
+        refreshUserDevices();
         setAllUserRequests(allUserRequests.filter(device => device['request_id'] !== request_id));
     }
 
@@ -86,7 +86,7 @@ export default function RegistrationRequests({userId, setUserRegisteredDevices, 
             <View key={device['request_id']} style={styles.deviceCard}>
                 <Text>{device['deviceToApprove']['mac_address']}</Text>
                 <Pressable style={styles.approveButton} onPress={async () => {
-                    await approveDevice(device['request_id'])
+                    await approveDevice(device['request_id'], device['deviceToApprove']['mac_address'])
                 }}>
                     <Text style={{color: "white"}}>Approve</Text>
                 </Pressable>

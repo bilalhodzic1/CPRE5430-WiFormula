@@ -55,8 +55,8 @@ export default function UserDevices({userRegisteredDevices, userLoading, refresh
             <ActivityIndicator size="large" color="#007AFF"/>
         </View>
         :
-        userRegisteredDevices.map((device) => (
-            <View key={device['request_id']} style={styles.deviceCard}>
+        userRegisteredDevices.filter((x) => x['device_type'] === "C").map((device) => (
+            <View key={device['mac_address']} style={styles.deviceCard}>
                 <Text> {device.mac_address} - Controller</Text>
                 {device.children && device.children.length > 0 && (
                     <View style={{marginTop: 2, marginLeft: 10}}>

@@ -24,13 +24,12 @@ export default function MainLayout({userId}) {
 
     return (
         <SafeAreaView>
-            <ScrollView>
+            <ScrollView style={{height: "100%"}} >
                 <AllUnregistered userId={userId} setUserRegisteredDevices={setUserRegisteredDevices}
                                  userRegisteredDevices={userRegisteredDevices}/>
                 <UserDevices userLoading={userLoading} userRegisteredDevices={userRegisteredDevices}
                              refreshUserDevices={refreshUserDevices}/>
-                <RegistrationRequests userId={userId} setUserRegisteredDevices={setUserRegisteredDevices}
-                                      userRegisteredDevices={userRegisteredDevices}/>
+                <RegistrationRequests userId={userId} refreshUserDevices={refreshUserDevices}/>
             </ScrollView>
         </SafeAreaView>
     )
