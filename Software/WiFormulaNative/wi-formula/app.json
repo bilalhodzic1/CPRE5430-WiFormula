@@ -16,7 +16,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.bhodzic.wiformula",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NS"
       }
     },
     "android": {
