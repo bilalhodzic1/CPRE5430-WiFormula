@@ -1,8 +1,11 @@
 
 #include "send_register_request.h"
-
+/**
+ * @brief Send a controller registration requests for the currently running device
+ */
 void send_register_request()
 {
+    // Get MAC string of current running AP
     uint8_t mac[6];
     esp_wifi_get_mac(WIFI_IF_AP, mac);
 
@@ -10,11 +13,12 @@ void send_register_request()
     sprintf(mac_str, "%02X:%02X:%02X:%02X:%02X:%02X",
             mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 
+    // Create POST body for reigster request
     char post_data[128];
     sprintf(post_data,
             "{\"mac_address\":\"%s\",\"device_type\":\"C\"}",
             mac_str);
-
+    // Make registration request to server
     char local_response_buffer[4096 + 1] = {0};
     esp_http_client_config_t config = {
         .host = "207.211.177.254",
@@ -34,10 +38,12 @@ void send_register_request()
         int response_code = esp_http_client_get_status_code(client);
         if (response_code == 400)
         {
+            // If 400 we already registered
             printf("Already Registered\n");
         }
         else if (response_code == 201)
         {
+            // 201 successfully registered
             printf("Successfully registered\n");
         }
     }
@@ -45,5 +51,6 @@ void send_register_request()
     {
         printf("Test failed\n");
     }
+    // Free client
     esp_http_client_cleanup(client);
 }

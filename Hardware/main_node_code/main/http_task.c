@@ -1,17 +1,26 @@
 #include "http_task.h"
-
+/**
+ * @brief Task loop for making HTTP calls off the main thread. Waits for signal from other code
+ *
+ * @param pv optional param for passing data to task
+ */
 void http_task(void *pv)
 {
+    // Infitie loop that waits for signal
     for (;;)
     {
+        // Wait for signal
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
+        // Task num set by other methods. On notify do correct HTTP call based on number
         switch (http_request_number)
         {
         case 1:
+            // Send main node registration request
             send_register_request();
             break;
         case 2:
+            // Setup and handle sub node auth
             if (mac_pending)
             {
                 char pending_mac_str[18];
@@ -29,6 +38,7 @@ void http_task(void *pv)
             }
             break;
         default:
+            // Invalid number
             printf("Unknown request number: %d\n", http_request_number);
             break;
         }

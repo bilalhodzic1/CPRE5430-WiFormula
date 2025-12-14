@@ -1,14 +1,19 @@
 #include "wifi_startups.h"
-
+/**
+ * @brief Sets config for wifi station and access point mode
+ */
 void start_apsta_mode()
 {
+    // Register event handlers
     ESP_ERROR_CHECK(esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL, NULL));
     ESP_ERROR_CHECK(esp_event_handler_instance_register(IP_EVENT, ESP_EVENT_ANY_ID, &ip_event_handler, NULL, NULL));
 
+    // Initialize default wifi stack with apsta mode
     wifi_init_config_t init_config = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&init_config));
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_APSTA));
 
+    // Set wifi AP config
     ap_netif = esp_netif_create_default_wifi_ap();
     wifi_config_t ap_config = {
         .ap = {
@@ -21,6 +26,7 @@ void start_apsta_mode()
     };
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &ap_config));
 
+    // Set wifi station config for home router connection
     esp_netif_create_default_wifi_sta();
     wifi_config_t sta_config = {
         .sta = {
@@ -29,5 +35,6 @@ void start_apsta_mode()
 
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &sta_config));
 
+    // Start wifi
     ESP_ERROR_CHECK(esp_wifi_start());
 }

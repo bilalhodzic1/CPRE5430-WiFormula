@@ -1,7 +1,10 @@
 #include "start_websocket.h"
-
+/**
+ * @brief Start websocket client connection
+ */
 void start_websocket()
 {
+    // Generate URI with macstring as param for identification on server
     uint8_t mac[6];
     esp_wifi_get_mac(WIFI_IF_STA, mac);
 
@@ -12,7 +15,9 @@ void start_websocket()
     esp_websocket_client_config_t ws_cfg = {
         .uri = ws_url};
 
+    // Set global client to intitialzied client
     ws_client = esp_websocket_client_init(&ws_cfg);
+    // Register event handler and strat connection
     esp_websocket_register_events(ws_client,
                                   WEBSOCKET_EVENT_ANY, websocket_client_event_handler, NULL);
 

@@ -1,5 +1,7 @@
 #include "globals.h"
-
+/**
+ * @brief List of global variables to be included across many files
+ */
 int http_request_number = 0;
 typedef struct mosq_broker_config mosq_broker_config_t;
 volatile bool is_broker_started = false;

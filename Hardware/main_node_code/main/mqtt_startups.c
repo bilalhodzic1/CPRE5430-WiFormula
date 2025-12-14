@@ -1,7 +1,12 @@
 #include "mqtt_startups.h"
-
+/**
+ * @brief Start MQTT local broker
+ *
+ * @param args optional arguements
+ */
 void start_mqtt_broker(void *args)
 {
+    // Start MOSQ minimal broker on localhost
     is_broker_started = true;
     mosq_broker_config_t mqtt_config = {
         .host = "0.0.0.0",
@@ -11,8 +16,13 @@ void start_mqtt_broker(void *args)
     vTaskDelete(NULL);
 }
 
+/**
+ * @brief Start MQTT client to MOSQ local broker
+ *
+ */
 void start_local_client()
 {
+    // Use mac address as crendtial for MQTT
     uint8_t mac[6];
     esp_wifi_get_mac(WIFI_IF_STA, mac);
 
@@ -25,6 +35,7 @@ void start_local_client()
         .broker.address.port = 1883,
         .credentials.username = mac_str};
     client = esp_mqtt_client_init(&mqtt_cfg);
+    // Register handler and start the client
     esp_mqtt_client_register_event(client, ESP_EVENT_ANY_ID, mqtt_event_handler, NULL);
     esp_mqtt_client_start(client);
 }
