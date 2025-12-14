@@ -9,13 +9,17 @@ import org.springframework.web.socket.CloseStatus;
 
 import java.util.HashMap;
 import java.util.Map;
-
+/**
+ * Web socket handler for data pass through
+ */
 @Component
 public class FormulaOneSocketHandler extends TextWebSocketHandler {
+    //Map containing active sessions and details about them
     private Map<String ,WebSocketDeviceDetail> sessionsMap = new HashMap<>();
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
+        //Get the URI and map to oject in map
         String uri = session.getUri().getQuery();
         boolean actualDevice = false;
         if (uri != null && uri.contains("device=")) {
@@ -36,6 +40,7 @@ public class FormulaOneSocketHandler extends TextWebSocketHandler {
     }
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+        //On message received send to all ESP32 devices
         for (Map.Entry<String, WebSocketDeviceDetail> entry : sessionsMap.entrySet()) {
             if (entry.getValue().deviceType.equals("ESP32")) {
                 entry.getValue().session.sendMessage(message);
@@ -44,6 +49,7 @@ public class FormulaOneSocketHandler extends TextWebSocketHandler {
     }
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+        //Remove from map on close
         sessionsMap.remove(session.getId());
     }
 }
