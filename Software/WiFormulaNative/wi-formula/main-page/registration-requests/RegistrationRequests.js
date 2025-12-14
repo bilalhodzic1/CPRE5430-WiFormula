@@ -1,10 +1,18 @@
 import {useCallback, useEffect, useState} from "react";
 import CONFIG from "../../config.js";
 import {ActivityIndicator, Pressable, StyleSheet, Text, View} from "react-native";
-
+/**
+ * Login signup component for handling user login and sign up
+ *
+ * @param {Object} props - Component props
+ * @param {Function} props.userId - Logged in user ID
+ * @param {Function} props.refreshUserDevices - function to refresh user devices
+ */
 export default function RegistrationRequests({userId, refreshUserDevices}) {
+    // initialize state for all user registration requests
     const [allUserRequests, setAllUserRequests] = useState([]);
     const [allRequestsLoading, setAllRequestsLoading] = useState(true);
+    //Stylesheet for registration requests component
     const styles = StyleSheet.create({
         loadingContainer: {
             display: "flex",
@@ -43,6 +51,7 @@ export default function RegistrationRequests({userId, refreshUserDevices}) {
             marginBottom: 10
         }
     });
+    //Callback to refresh user registration requests on user id change
     const refreshUserRequests = useCallback(() => {
         const fetchAllRequests = async () => {
             setAllRequestsLoading(true);
@@ -53,11 +62,18 @@ export default function RegistrationRequests({userId, refreshUserDevices}) {
         }
         fetchAllRequests().then(() => setAllRequestsLoading(false));
     }, [userId])
+    //Run refreshUserRequests on callback change
     useEffect(() => {
         refreshUserRequests()
     }, [refreshUserRequests])
 
+    /**
+     * Login signup component for handling user login and sign up
+     *
+     * @param {string} request_id - guid of request to approve
+     */
     async function approveDevice(request_id) {
+        //Create request object and make fetch request to approve device
         const approveRequestObject = {
             "request_id": request_id,
             "user_id": userId
@@ -72,11 +88,13 @@ export default function RegistrationRequests({userId, refreshUserDevices}) {
                     body: JSON.stringify(approveRequestObject)
                 }
             );
+        //Refresh user devices and remove request from list
         await approveDeviceRequest.json();
         refreshUserDevices();
         setAllUserRequests(allUserRequests.filter(device => device['request_id'] !== request_id));
     }
 
+    //List of all user registration requests and spinner if loading
     const listItems = allRequestsLoading ?
         <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#007AFF"/>

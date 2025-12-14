@@ -1,6 +1,15 @@
 import {ActivityIndicator, Pressable, StyleSheet, Text, View} from "react-native";
 
+/**
+ * User devices component for displaying user approved devices
+ *
+ * @param {Object} props - Component props
+ * @param {Function} props.refreshUserDevices - Function to refresh user devices
+ * @param {Array} props.userRegisteredDevices - USer registered devices list
+ * @param {boolean} props.userLoading - Loading state for user devices
+ */
 export default function UserDevices({userRegisteredDevices, userLoading, refreshUserDevices}) {
+    //Stylesheet for user devices component
     const styles = StyleSheet.create({
         loadingContainer: {
             display: "flex",
@@ -50,6 +59,7 @@ export default function UserDevices({userRegisteredDevices, userLoading, refresh
 
         }
     });
+    //List of user approved devices and spinner if loading
     const listItems = userLoading ?
         <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#007AFF"/>

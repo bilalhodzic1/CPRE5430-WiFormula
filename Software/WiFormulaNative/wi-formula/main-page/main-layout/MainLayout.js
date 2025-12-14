@@ -5,10 +5,17 @@ import UserDevices from "../user-devices/UserDevices";
 import AllUnregistered from "../all-unregistered/AllUnregistered";
 import {SafeAreaView} from "react-native-safe-area-context";
 import {ScrollView} from "react-native";
-
+/**
+ * Main layout component holds main page components and needed state
+ *
+ * @param {Object} props - Component props
+ * @param {Function} props.userId - Set user on successful login
+ */
 export default function MainLayout({userId}) {
+    //Set needed shared state
     const [userRegisteredDevices, setUserRegisteredDevices] = useState([])
     const [userLoading, setUserLoading] = useState(true);
+    //Callback to refresh user devices on component mount and on user registration/approval change
     const refreshUserDevices = useCallback(() => {
         const fetchUserRegistered = async () => {
             setUserLoading(true);
@@ -18,6 +25,7 @@ export default function MainLayout({userId}) {
         }
         fetchUserRegistered().then(() => setUserLoading(false));
     }, [userId]);
+    //Run refreshUserDevices on callback change
     useEffect(() => {
         refreshUserDevices()
     }, [refreshUserDevices])

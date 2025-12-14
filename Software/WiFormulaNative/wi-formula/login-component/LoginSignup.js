@@ -1,8 +1,15 @@
 import {useState} from "react";
 import CONFIG from "../config";
 import {StyleSheet, View, Text, TextInput, Button, Pressable, TouchableWithoutFeedback, Keyboard} from "react-native";
-
+/**
+ * Login signup component for handling user login and sign up
+ *
+ * @param {Object} props - Component props
+ * @param {Function} props.setIsLoggedIn - Set isLoggedIn to true on successful login
+ * @param {Function} props.setUserId - Set user on successful login
+ */
 export default function LoginSignup({setIsLoggedIn, setUserId}) {
+    //Manage form state and validation state
     const [userName, setUserName] = useState("");
     const [isUsernameFocused, setIsUsernameFocused] = useState(false);
     const [validUsername, setValidUsername] = useState(true);
@@ -12,6 +19,7 @@ export default function LoginSignup({setIsLoggedIn, setUserId}) {
     const [formSubmitting, setFormSubmitting] = useState(false);
     const [inValidLogin, setInvalidLogin] = useState(false);
 
+    //Stylesheet for form
     const styles = StyleSheet.create({
         mainContainer: {
             display: "flex",
@@ -66,13 +74,19 @@ export default function LoginSignup({setIsLoggedIn, setUserId}) {
         },
     })
 
+    /**
+     * Handle login function. called on form submission
+     */
     async function handleLogin() {
+        //Set flag to submitting to prevent spamming
         setFormSubmitting(true);
+        //Generate request object
         const loginRequest = {
             "username": userName,
             "password": password
         };
         console.log(loginRequest)
+        //Make request
         const response = await fetch(`${CONFIG.API_URL}/api/user/login`, {
             method: 'POST',
             headers: {
@@ -81,8 +95,10 @@ export default function LoginSignup({setIsLoggedIn, setUserId}) {
             body: JSON.stringify(loginRequest)
         });
         console.log(response)
+        //On success, set isLoggedIn to true and set userId to user id returned from server
         setFormSubmitting(false)
         if (response.status === 401) {
+            //Set invalid message on failure
             setInvalidLogin(true)
         }
         {
@@ -91,8 +107,11 @@ export default function LoginSignup({setIsLoggedIn, setUserId}) {
             setIsLoggedIn(true)
         }
     }
-
+    /**
+     * function to handle sign up. called on form submission.
+     */
     async function handleSignUp() {
+        //Check input validity
         console.log("Sign up clicked")
         if (userName === "") {
             setValidUsername(false)
@@ -106,7 +125,9 @@ export default function LoginSignup({setIsLoggedIn, setUserId}) {
         } else {
             setValidPassword(true)
         }
+        //Set flag to prevent spamming
         setFormSubmitting(true);
+        //Generate request object and make request
         const signUpRequest = {
             "username": userName,
             "password": password
@@ -119,6 +140,7 @@ export default function LoginSignup({setIsLoggedIn, setUserId}) {
             },
             body: JSON.stringify(signUpRequest)
         });
+        //IF created successfully, set isLoggedIn to true and set userId to user id returned from server
         setFormSubmitting(false);
         if (response.status === 201) {
             const data = await response.json();
@@ -127,6 +149,7 @@ export default function LoginSignup({setIsLoggedIn, setUserId}) {
         }
     }
 
+    //Object that shows error message if invalid login or username or password
     const errorView = inValidLogin || !validUsername || !validPassword ? (
         <View style={{backgroundColor: "#FF8A8A", padding: 7, borderColor : "red", borderRadius : 4, borderWidth : 1, marginTop : 10,  width: "80%"}}>
             {inValidLogin && <Text style={{color: "white"}}>Invalid username or password</Text>}
