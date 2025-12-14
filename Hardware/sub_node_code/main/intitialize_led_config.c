@@ -1,4 +1,7 @@
 #include "initialize_led_config.h"
+/**
+ * @brief Initialize LED strip device
+ */
 void initialize_led_strip()
 {
     led_strip_config_t strip_config = {
@@ -14,8 +17,9 @@ void initialize_led_strip()
         .resolution_hz = LED_STRIP_RMT_RES_HZ, // RMT counter clock frequency
         .mem_block_symbols = 0,                // the memory block size used by the RMT channel
         .flags = {
-            .with_dma = 0, // Using DMA can improve performance when driving more LEDs
+            .with_dma = 0,
         }};
+    // Inittialze new device to global. Clear the strip of all currenly enabled lights
     ESP_ERROR_CHECK(led_strip_new_rmt_device(&strip_config, &rmt_config, &led_strip));
     ESP_ERROR_CHECK(led_strip_clear(led_strip));
 }
