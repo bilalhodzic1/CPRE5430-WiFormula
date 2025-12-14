@@ -1,9 +1,13 @@
+"""
+Replay engine for replaying a formula one race for viewing and data streaming
+"""
+
 import json
 from datetime import datetime
 import time
 import asyncio
 import websockets
-
+#Load data
 with open("position.json", "r") as file:
     position_data = json.load(file)
 
@@ -13,6 +17,7 @@ with open("drivers.json", "r") as driver_file:
 with open("flaginfo.json", "r") as flag_file:
     flag_data = json.load(flag_file)
 
+#order data
 for item in position_data:
     item['date'] = datetime.fromisoformat(item['date'])
 
@@ -23,6 +28,7 @@ position_data = sorted(position_data, key=lambda x: x['date'])
 
 flag_data = sorted(flag_data, key=lambda x: x['date'])
 
+#filter to relevant events
 allowed_flags = {"GREEN", "DOUBLE YELLOW", "YELLOW", "CLEAR", "CHEQUERED"}
 
 race_position_changes = position_data[20:]
@@ -53,8 +59,17 @@ all_events.sort(key=lambda e: e["date"])
 async def connect_to_websocket(uri,
     ping_interval=20,
     ping_timeout=20,):
+    """
+    Connects to a web socket and streams race replay
+    
+    :param uri: URi to web socket on server
+    :param ping_interval: keep alive timer
+    :param ping_timeout: keep alive timer
+    """
+
     async with websockets.connect(uri) as ws:
-        race_start_time = all_events[0]["date"]   # first recorded instance
+        #Start time for race and replay in real time
+        race_start_time = all_events[0]["date"]
         sim_start_real = time.monotonic()
 
         for event in all_events:
@@ -62,6 +77,7 @@ async def connect_to_websocket(uri,
 
         current_index = 0
 
+        #While still events keep checking time for new events and send to server
         while current_index < len(all_events):
             elapsed = time.monotonic() - sim_start_real
 
@@ -91,5 +107,6 @@ async def connect_to_websocket(uri,
             await asyncio.sleep(0.05)
 
 if __name__ == "__main__":
+    #connect to websocket and start the sim
     websocket_uri = "ws://207.211.177.254:8080/formula-data-stream?device=PYTHON&mac=NOMAC"
     asyncio.run(connect_to_websocket(websocket_uri))
